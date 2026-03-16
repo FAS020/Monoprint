@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Manual - Monoprint Manual</title>
   <style>
     body {
@@ -63,11 +64,19 @@
     .video-wrapper {
       position: relative;
       width: 100%;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio. Pas aan (hoogte / breedte * 100) indien nodig. */
       border-radius: 20px; /* Ronde hoeken */
       overflow: hidden;
       background: #000;
-      display: flex;
       box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
 
     .description-text {
@@ -83,9 +92,12 @@
       pointer-events: none; /* Zorgt dat tekst de muis niet blokkeert */
     }
 
-    video {
+    #click-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
-      display: block;
+      height: 100%;
       cursor: pointer;
     }
 
@@ -102,6 +114,7 @@
       gap: 20px;
       opacity: 0;
       transition: opacity 0.3s ease;
+      z-index: 10; /* Zorgt dat de controls boven de klik-overlay komen */
     }
 
     .video-wrapper:hover .custom-controls {
@@ -242,10 +255,9 @@
     </div>
 
     <div class="video-wrapper">
-      <video autoplay loop muted id="manualVideo">
-        <source src="links/video/manual.mp4" type="video/mp4">
-      </video>
+      <div id="youtube-player"></div>
       
+      <div id="click-overlay"></div>
       <div class="custom-controls">
         <button class="play-pause" id="playBtn">
           <svg id="playIcon" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
@@ -269,8 +281,8 @@
     <div id="descriptionText" class="description-text"></div>
   </div>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    const video = document.getElementById('manualVideo');
     const playBtn = document.getElementById('playBtn');
     const playIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>`;
     const pauseIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
@@ -280,6 +292,11 @@
     const volumeSlider = document.getElementById('volumeSlider');
     const descriptionText = document.getElementById('descriptionText');
     const timelineIconsContainer = document.getElementById('timelineIcons');
+
+    let player;
+    let playerReady = false;
+    let timeUpdater; // Houdt de setInterval bij voor de tijdlijn
+    const YOUTUBE_VIDEO_ID = 'utmwsYK2gxA'; // <-- VERVANG DIT met de ID van je YouTube video
 
     const chapters = [
       { time: 0, icon: 'snijwaren.png' },
@@ -357,9 +374,37 @@
     }
     requestAnimationFrame(updateVibration);
 
-    // Plaats de icoontjes op de tijdlijn zodra de video data geladen is
-    video.addEventListener('loadedmetadata', () => {
-      const duration = video.duration;
+    // --- YouTube Player API Setup ---
+
+    // Deze functie wordt automatisch aangeroepen door de YouTube API script
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-player', {
+      videoId: YOUTUBE_VIDEO_ID,
+      playerVars: {
+      'autoplay': 1,
+      'controls': 0,
+      'loop': 1,
+      'playlist': YOUTUBE_VIDEO_ID,
+      'rel': 0,
+      'modestbranding': 1,
+      'playsinline': 1,
+      'origin': window.location.origin
+    },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    // De API roept deze functie aan wanneer de speler klaar is.
+    function onPlayerReady(event) {
+      playerReady = true;
+      event.target.mute(); // Start gedempt, net als de vorige video
+      volumeSlider.value = 0; // Synchroniseer de volume slider
+
+      // Plaats de icoontjes op de tijdlijn (vervangt 'loadedmetadata' event)
+      const duration = player.getDuration();
       if (!duration) return;
 
       chapters.forEach(chapter => {
@@ -371,7 +416,7 @@
           iconEl.style.left = `${percent}%`;
           iconEl.style.backgroundImage = `url(links/icons_png/${chapter.icon})`;
           iconEl.addEventListener('click', () => {
-            video.currentTime = chapter.time;
+            player.seekTo(chapter.time, true); // Gebruik de YouTube API
             const tool = chapter.icon.replace('.png', '');
             if (info[tool]) {
               descriptionText.textContent = info[tool];
@@ -385,29 +430,43 @@
           timelineIconsContainer.appendChild(iconEl);
         }
       });
-    });
+    }
+
+    // De API roept deze functie aan als de status van de speler verandert (play, pause, etc.)
+    function onPlayerStateChange(event) {
+      if (event.data == YT.PlayerState.PLAYING) {
+        playBtn.innerHTML = pauseIcon;
+        // Start onze eigen 'timeupdate' loop
+        clearInterval(timeUpdater);
+        timeUpdater = setInterval(updatePlayerTime, 250);
+      } else {
+        playBtn.innerHTML = playIcon;
+        // Stop de loop als de video pauzeert of stopt
+        clearInterval(timeUpdater);
+      }
+    }
+
+    // Functie om de tijdlijn UI te updaten, omdat we geen 'timeupdate' event meer hebben
+    function updatePlayerTime() {
+      if (!isDragging && playerReady && player.getDuration) {
+        const percent = (player.getCurrentTime() / player.getDuration()) * 100;
+        updateUI(percent);
+      }
+    }
 
     // Play/Pause toggle
     const togglePlay = () => {
-      if (video.paused) {
-        video.play();
-        playBtn.innerHTML = pauseIcon;
+      if (!playerReady) return;
+      const state = player.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
       } else {
-        video.pause();
-        playBtn.innerHTML = playIcon;
+        player.playVideo();
       }
     };
 
     playBtn.addEventListener('click', togglePlay);
-    video.addEventListener('click', togglePlay);
-
-    // Update tijdlijn
-    video.addEventListener('timeupdate', () => {
-      if (!isDragging) {
-        const percent = (video.currentTime / video.duration) * 100;
-        updateUI(percent);
-      }
-    });
+    document.getElementById('click-overlay').addEventListener('click', togglePlay);
 
     // Tijdlijn verslepen (Drag logic)
     let isDragging = false;
@@ -418,12 +477,13 @@
     }
 
     function scrub(e) {
+      if (!playerReady || !player.getDuration) return;
       const rect = progressContainer.getBoundingClientRect();
       const pos = (e.clientX - rect.left) / rect.width;
       const clampedPos = Math.max(0, Math.min(1, pos));
       
       updateUI(clampedPos * 100);
-      video.currentTime = clampedPos * video.duration;
+      player.seekTo(clampedPos * player.getDuration(), true);
     }
 
     progressContainer.addEventListener('mousedown', (e) => {
@@ -441,8 +501,14 @@
 
     // Volume control
     volumeSlider.addEventListener('input', (e) => {
-      video.volume = e.target.value;
-      video.muted = (e.target.value == 0);
+      if (!playerReady) return;
+      const volume = e.target.value;
+      player.setVolume(volume * 100); // YouTube API gebruikt 0-100
+      if (volume > 0 && player.isMuted()) {
+        player.unMute();
+      } else if (volume == 0 && !player.isMuted()) {
+        player.mute();
+      }
     });
   </script>
 </body>
