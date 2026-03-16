@@ -378,18 +378,21 @@
 
     // Deze functie wordt automatisch aangeroepen door de YouTube API script
     function onYouTubeIframeAPIReady() {
-      player = new YT.Player('youtube-player', {
-      videoId: YOUTUBE_VIDEO_ID,
-      playerVars: {
-      'autoplay': 1,
-      'controls': 0,
-      'loop': 1,
-      'playlist': YOUTUBE_VIDEO_ID,
-      'rel': 0,
-      'modestbranding': 1,
-      'playsinline': 1,
-      'origin': window.location.origin
-    },
+    player = new YT.Player('youtube-player', {
+    host: 'https://www.youtube-nocookie.com',   // ← DEZE ONTBRAK
+    videoId: YOUTUBE_VIDEO_ID,
+    playerVars: {
+      autoplay: 1,
+      controls: 0,
+      loop: 1,
+      playlist: YOUTUBE_VIDEO_ID,
+      rel: 0,
+      modestbranding: 1,
+      iv_load_policy: 3,
+      playsinline: 1,
+      enablejsapi: 1,
+      origin: window.location.origin
+      },
         events: {
           'onReady': onPlayerReady,
           'onStateChange': onPlayerStateChange
@@ -401,6 +404,7 @@
     function onPlayerReady(event) {
       playerReady = true;
       event.target.mute(); // Start gedempt, net als de vorige video
+      event.target.playVideo();  // start direct
       volumeSlider.value = 0; // Synchroniseer de volume slider
 
       // Plaats de icoontjes op de tijdlijn (vervangt 'loadedmetadata' event)
