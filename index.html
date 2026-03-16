@@ -1,0 +1,154 @@
+ <!DOCTYPE html>
+ <html>
+ <head>
+  <title>Monoprint Manual</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #ffffff;
+      gap: 10px;
+    }
+
+    header, footer {
+      width: 100%;
+      height: 40px; /* Hoogte van de balken verkleind */
+      background-color: #ffffff;
+      position: fixed;
+      left: 0;
+      z-index: 10; /* Zorgt dat ze boven de trillende beelden zweven */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: sans-serif;
+      font-size: 10px; /* Tekstgrootte verkleind */
+    }
+
+    header { top: 0; }
+    footer { bottom: 0; }
+
+    /* Herstelt de flex-centrering door de link-wrapper 'onzichtbaar' te maken voor layout */
+    a {
+      display: contents;
+    }
+
+    img {
+      max-width: 60%;
+      height: auto;
+      display: block;
+      animation: vibration 0.3s linear infinite;
+    }
+
+    .manual {
+      position: relative;
+      left: -20px;
+      top: -10px;
+    }
+
+    .exist {
+      max-width: 40%; /* Hierdoor wordt de Exist afbeelding kleiner dan de manual */
+      margin-top: 0;
+      margin-left: 10px;
+    }
+
+    /* De vibratie/glitch animatie */
+    @keyframes vibration {
+      0% { transform: translate(calc(var(--v-x) * 1px), calc(var(--v-y) * 1px)) rotate(calc(var(--v-r) * 1deg)); }
+      25% { transform: translate(calc(var(--v-x) * -1.5px), calc(var(--v-y) * 2px)) rotate(calc(var(--v-r) * -1.2deg)); }
+      50% { transform: translate(calc(var(--v-x) * 2px), calc(var(--v-y) * -1px)) scale(calc(1 + var(--v-s))); }
+      75% { transform: translate(calc(var(--v-x) * -1px), calc(var(--v-y) * -2.5px)) rotate(calc(var(--v-r) * 0.8deg)); }
+      100% { transform: translate(calc(var(--v-x) * 1px), calc(var(--v-y) * 1px)); }
+    }
+  </style>
+ </head>
+ <body>
+  <header></header>
+  <a href="manual.html">
+    <img src="links/Woorden/Monoprint_Manual_To.jpg" alt="Monoprint Manual" class="manual">
+  </a>
+  <a href="manual.html">
+    <img src="links/Woorden/Exist.jpg" alt="Subtitle" class="exist" id="subtitle">
+  </a>
+  <footer>&copy; <span id="current-year"></span> Monoprint Manual. All rights reserved.</footer>
+
+  <script>
+    // Lijst met alle afbeeldingen in de map 'links/Woorden/' (behalve de manual)
+    // Voeg hier de rest van je bestandsnamen toe tussen de aanhalingstekens
+    const woorden = [
+      "Exist.jpg",
+      "Fight.jpg", 
+      "Protest.jpg", 
+      "Revolt.jpg",
+      "Resist.jpg",
+      "Provocate.jpg",
+      "Inform.jpg",
+      "Unite.jpg",
+      "Love.jpg"
+    ];
+
+    let index = 0;
+    const subtitleElement = document.getElementById('subtitle');
+
+    // Zet het jaartal automatisch op het huidige jaar
+    document.getElementById('current-year').textContent = new Date().getFullYear();
+
+    // Intensiteit beheer voor de vibratie
+    let intensity = 1;
+    let targetIntensity = 1;
+    let isHovering = false;
+
+    // Selecteer de afbeeldingen voor de hover-interactie
+    document.querySelectorAll('img').forEach(img => {
+      img.addEventListener('mouseenter', () => { isHovering = true; });
+      img.addEventListener('mouseleave', () => { isHovering = false; });
+    });
+
+    window.addEventListener('mousemove', () => {
+      // Alleen de algemene trilling triggeren als we niet op een afbeelding staan
+      if (!isHovering) targetIntensity = 2.5;
+    });
+
+    let lastSwitchTime = 0;
+
+    // De 'Afzak' loop
+    function updateVibration(timestamp) {
+      // Als we hoveren, dwingen we de intensiteit naar een agressief niveau
+      if (isHovering) {
+        targetIntensity = 7;
+      }
+
+      // Dynamische wisselsnelheid op basis van intensiteit
+      // We mappen intensity 1 naar 500ms en intensity 7 naar 100ms
+      const speedFactor = Math.min(Math.max((intensity - 1) / 6, 0), 1);
+      const currentInterval = 500 - (speedFactor * 400);
+
+      if (timestamp - lastSwitchTime >= currentInterval) {
+        index = (index + 1) % woorden.length;
+        subtitleElement.src = "links/Woorden/" + woorden[index];
+        lastSwitchTime = timestamp;
+      }
+
+      // Ease-out: we bewegen de huidige intensiteit langzaam naar de target
+      intensity += (targetIntensity - intensity) * 0.03;
+
+      // Als we niet meer bewegen, moet de target weer naar de ruststand (1)
+      if (targetIntensity > 1) targetIntensity -= 0.1;
+      if (targetIntensity < 1) targetIntensity = 1;
+
+      // Update de CSS variabelen op de body zodat de animatie ze gebruikt
+      document.body.style.setProperty('--v-x', intensity * 0.7);
+      document.body.style.setProperty('--v-y', intensity * 0.5);
+      document.body.style.setProperty('--v-r', intensity * 0.1);
+      document.body.style.setProperty('--v-s', (intensity - 1) * 0.005);
+
+      requestAnimationFrame(updateVibration);
+    }
+    requestAnimationFrame(updateVibration);
+  </script>
+ </body>
+ </html>

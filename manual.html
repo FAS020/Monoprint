@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Manual - Monoprint Manual</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background-color: #ffffff;
+      overflow-y: auto;
+    }
+
+    /* Container die de video centreert en de iconen relatief daaraan plaatst */
+    .main-container {
+      position: relative;
+      width: 80%;
+      max-width: 1000px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Iconen navigatie boven de video */
+    .icon-nav {
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding-bottom: 15px; /* Ruimte verkleind */
+      z-index: 5;
+    }
+
+    .icon-btn {
+      width: 7%; /* Kleiner gemaakt zodat ze binnen het scherm/tab blijven */
+      height: auto;
+      aspect-ratio: 1 / 1; /* Behoudt vierkante vorm */
+      object-fit: cover;
+      cursor: pointer;
+      border: none;
+      /* Standaard staan de vibratie-waarden op 0 */
+      --i-x: 0; --i-y: 0; --i-r: 0;
+      animation: icon-vibe 0.5s linear infinite;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.9);
+    }
+
+    @keyframes icon-vibe {
+      0% { transform: translate(calc(var(--i-x) * 1px), calc(var(--i-y) * 1px)) rotate(calc(var(--i-r) * 1deg)); }
+      25% { transform: translate(calc(var(--i-x) * -1.2px), calc(var(--i-y) * 1.5px)) rotate(calc(var(--i-r) * -1deg)); }
+      50% { transform: translate(calc(var(--i-x) * 1.8px), calc(var(--i-y) * -0.8px)); }
+      75% { transform: translate(calc(var(--i-x) * -0.8px), calc(var(--i-y) * -2.2px)) rotate(calc(var(--i-r) * 0.5deg)); }
+      100% { transform: translate(calc(var(--i-x) * 1px), calc(var(--i-y) * 1px)); }
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      border-radius: 20px; /* Ronde hoeken */
+      overflow: hidden;
+      background: #000;
+      display: flex;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+    .description-text {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      padding-top: 20px;
+      text-align: center;
+      font-family: sans-serif;
+      font-size: 14px;
+      color: #333;
+      pointer-events: none; /* Zorgt dat tekst de muis niet blokkeert */
+    }
+
+    video {
+      width: 100%;
+      display: block;
+      cursor: pointer;
+    }
+
+    /* Custom Player Styling */
+    .custom-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.2)); /* Subtiele schaduw voor leesbaarheid */
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .video-wrapper:hover .custom-controls {
+      opacity: 1;
+    }
+
+    .play-pause {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .play-pause svg {
+      width: 100%;
+      height: 100%;
+      text-align: left;
+    }
+
+    .progress-container {
+      flex-grow: 1;
+      height: 2px;
+      background: rgba(255,255,255,0.3);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #ffffff;
+      width: 0%;
+      z-index: 1;
+    }
+
+    .timeline-icons {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    .timeline-icon {
+      position: absolute;
+      top: 0;
+      transform: translate(-50%, calc(-100% - 4px)); /* Boven de tijdlijn geplaatst met 4px ruimte */
+      width: 5%;
+      min-width: 15px; /* Zorgt voor leesbaarheid op kleine schermen */
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background-size: 75%; /* Maakt het witte icoon iets kleiner dan de zwarte cirkel */
+      background-position: center;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .timeline-icon:hover {
+      transform: translate(-50%, calc(-100% - 4px)) scale(1.5);
+    }
+
+    .progress-container:hover .progress-handle {
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+
+    .progress-handle {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      left: 0%;
+      transition: transform 0.2s ease;
+      z-index: 3;
+    }
+
+    .volume-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .volume-icon {
+      width: 16px;
+      height: 16px;
+      display: flex;
+    }
+
+    .volume-slider {
+      width: 50px;
+      height: 2px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255,255,255,0.3);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <div class="icon-nav">
+      <img src="links/icons/snijwaren.jpg" class="icon-btn" alt="snijwaren">
+      <img src="links/icons/papier.jpg" class="icon-btn" alt="papier">
+      <img src="links/icons/krant.jpg" class="icon-btn" alt="krant">
+      <img src="links/icons/inkt.jpg" class="icon-btn" alt="inkt">
+      <img src="links/icons/spatel.jpg" class="icon-btn" alt="spatel">
+      <img src="links/icons/snijplank.jpg" class="icon-btn" alt="snijplank">
+      <img src="links/icons/roller.jpg" class="icon-btn" alt="roller">
+      <img src="links/icons/deegroller.jpg" class="icon-btn" alt="deegroller">
+      <img src="links/icons/priem.jpg" class="icon-btn" alt="priem">
+      <img src="links/icons/schoonmaakspullen.jpg" class="icon-btn" alt="schoonmaakspullen">
+    </div>
+
+    <div class="video-wrapper">
+      <video autoplay loop muted id="manualVideo">
+        <source src="links/video/manual.mp4" type="video/mp4">
+      </video>
+      
+      <div class="custom-controls">
+        <button class="play-pause" id="playBtn">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        
+        <div class="progress-container" id="progressContainer">
+          <div class="timeline-icons" id="timelineIcons"></div>
+          <div class="progress-bar" id="progressBar"></div>
+          <div class="progress-handle" id="progressHandle"></div>
+        </div>
+
+        <div class="volume-container">
+          <div class="volume-icon">
+            <svg viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+          </div>
+          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="0">
+        </div>
+      </div>
+    </div>
+
+    <div id="descriptionText" class="description-text"></div>
+  </div>
+
+  <script>
+    const video = document.getElementById('manualVideo');
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>`;
+    const pauseIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+    const progressBar = document.getElementById('progressBar');
+    const progressHandle = document.getElementById('progressHandle');
+    const progressContainer = document.getElementById('progressContainer');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const descriptionText = document.getElementById('descriptionText');
+    const timelineIconsContainer = document.getElementById('timelineIcons');
+
+    const chapters = [
+      { time: 0, icon: 'snijwaren.png' },
+      { time: 12, icon: 'papier.png' },
+      { time: 144, icon: 'papier.png' },
+      { time: 175, icon: 'snijplank.png' },
+      { time: 185, icon: 'inkt.png', visualTime: 183 },
+      { time: 188, icon: 'spatel.png', visualTime: 191 },
+      { time: 192, icon: 'roller.png', visualTime: 199 },
+      { time: 207, icon: 'krant.png' },
+      { time: 217, icon: 'deegroller.png' },
+      { time: 295, icon: 'priem.png' }
+    ];
+
+    let hoveredElement = null;
+
+    // Beheer intensiteit per icoon voor een vloeiende ease-out
+    const iconButtons = document.querySelectorAll('.icon-btn');
+    const iconStates = new Map();
+    iconButtons.forEach(btn => iconStates.set(btn, { current: 0 }));
+
+    // Placeholder teksten per icoon
+    const info = {
+      'snijwaren': 'Om je sjablonen te maken heb je gereedschap nodig, met snijgerei en een lijmstift kom je al een heel eind!',
+      'papier': 'De vormen/sjablonen bestaan uit papier, het is aan te raden om een hoog glansend papier te gebruiken zoals fotopapier. Dit papier heeft een matte en een glansende zijde. Op de matte zijde kun je eventueel een ontwerp schetsen, aangezien we in spiegelbeeld werken staat je beeld dan direct goed op het drukvel. Op de glansende zeide van het papier breng je de inkt aan, door deze coat absorbeert het papier minder inkt en kun je efficiënter te werk gaan. Ook kun je texturen afdrukken zoals: behang, mandarijnnetje, bubbelplastic, karton, etc.',
+      'krant': 'Restpapier zoals oude kranten werken goed om je afdrukken te beschermen van smet! (En houd je werkplek schoon)',
+      'inkt': 'lino ink for block printing ESSDEE. Deze inkt is op waterbasis, gemakkelijk om je gereedschap en materialen schoon te krijgen. Een nadeel is dat de inkt snel droog is, dus per sjabloon inkt aanbrengen!',
+      'spatel': 'Elke spatel voldoet om de inkt te verspreiden over je inktplaat/inkttafel.',
+      'snijplank': 'Een snijplank van plastic/rubber materiaal leent zich goed als huishoudelijke inkttafel! (Daarna geen voedsel meer op snijden)',
+      'roller': 'ESSDEE verkoopt naast hun inkt ook mooie inktrollers waarmee je de sjablonen kan in inkten. (De rollers kun je onderhouden met wat natuurlijke olie, zo gaat het rubber langer mee)',
+      'deegroller': 'Heb je geen toegang tot een pers? Gebruik dan gewoon een deegroller om je een afdruk te maken!',
+      'priem': 'Een prikpen, spelt of een priem dient zich om de plakkerige sjablonen van je drukvel af te krijgen.',
+      'schoonmaakspullen': 'Dankzij dat de inkt op waterbasis is, zijn de gereedschappen gemakkelijk schoon te krijgen met water en afwasmiddel. Afdrogen met een microvezeldoek'
+    };
+
+    // Event listeners voor de iconen
+    iconButtons.forEach(btn => {
+      btn.addEventListener('mouseenter', () => { hoveredElement = btn; });
+      btn.addEventListener('mouseleave', () => { hoveredElement = null; });
+      
+      btn.addEventListener('click', () => {
+        const tool = btn.alt;
+        if (info[tool]) {
+          descriptionText.textContent = info[tool];
+          
+          // Update actieve status van het icoon
+          iconButtons.forEach(b => b.classList.remove('active-tool'));
+          btn.classList.add('active-tool');
+        }
+      });
+    });
+
+    // Vibratie Loop (met Ease)
+    function updateVibration() {
+      iconButtons.forEach(btn => {
+        let state = iconStates.get(btn);
+        let target = 0;
+
+        if (btn === hoveredElement) {
+          target = btn.classList.contains('active-tool') ? 0.8 : 2.0;
+        } else if (btn.classList.contains('active-tool')) {
+          target = 0.8;
+        }
+
+        // Individuele ease-out berekening
+        state.current += (target - state.current) * 0.02;
+
+        // Pas variabelen direct toe op het specifieke icoon
+        btn.style.setProperty('--i-x', state.current * 1.0);
+        btn.style.setProperty('--i-y', state.current * 0.8);
+        btn.style.setProperty('--i-r', state.current * 0.2);
+      });
+
+      requestAnimationFrame(updateVibration);
+    }
+    requestAnimationFrame(updateVibration);
+
+    // Plaats de icoontjes op de tijdlijn zodra de video data geladen is
+    video.addEventListener('loadedmetadata', () => {
+      const duration = video.duration;
+      if (!duration) return;
+
+      chapters.forEach(chapter => {
+        const positionTime = chapter.visualTime !== undefined ? chapter.visualTime : chapter.time;
+        const percent = (positionTime / duration) * 100;
+        if (percent >= 0 && percent <= 100) {
+          const iconEl = document.createElement('div');
+          iconEl.className = 'timeline-icon';
+          iconEl.style.left = `${percent}%`;
+          iconEl.style.backgroundImage = `url(links/icons_png/${chapter.icon})`;
+          iconEl.addEventListener('click', () => {
+            video.currentTime = chapter.time;
+            const tool = chapter.icon.replace('.png', '');
+            if (info[tool]) {
+              descriptionText.textContent = info[tool];
+            }
+            const topIcon = Array.from(iconButtons).find(btn => btn.alt === tool);
+            if (topIcon) {
+              iconButtons.forEach(b => b.classList.remove('active-tool'));
+              topIcon.classList.add('active-tool');
+            }
+          });
+          timelineIconsContainer.appendChild(iconEl);
+        }
+      });
+    });
+
+    // Play/Pause toggle
+    const togglePlay = () => {
+      if (video.paused) {
+        video.play();
+        playBtn.innerHTML = pauseIcon;
+      } else {
+        video.pause();
+        playBtn.innerHTML = playIcon;
+      }
+    };
+
+    playBtn.addEventListener('click', togglePlay);
+    video.addEventListener('click', togglePlay);
+
+    // Update tijdlijn
+    video.addEventListener('timeupdate', () => {
+      if (!isDragging) {
+        const percent = (video.currentTime / video.duration) * 100;
+        updateUI(percent);
+      }
+    });
+
+    // Tijdlijn verslepen (Drag logic)
+    let isDragging = false;
+
+    function updateUI(percent) {
+      progressBar.style.width = `${percent}%`;
+      progressHandle.style.left = `${percent}%`;
+    }
+
+    function scrub(e) {
+      const rect = progressContainer.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      const clampedPos = Math.max(0, Math.min(1, pos));
+      
+      updateUI(clampedPos * 100);
+      video.currentTime = clampedPos * video.duration;
+    }
+
+    progressContainer.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      scrub(e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) scrub(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Volume control
+    volumeSlider.addEventListener('input', (e) => {
+      video.volume = e.target.value;
+      video.muted = (e.target.value == 0);
+    });
+  </script>
+</body>
+</html>
