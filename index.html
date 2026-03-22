@@ -1,62 +1,123 @@
- <!DOCTYPE html>
- <html>
- <head>
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <title>Monoprint Manual</title>
   <style>
     body {
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-      min-height: 100vh;
       margin: 0;
       background-color: #ffffff;
-      gap: 10px;
+      overflow-x: hidden;
+      overflow-y: auto; /* Gewoon verticaal scrollen */
+      font-family: 'Avenir', sans-serif; /* Avenir als primair font */
+      font-size: 16px;
+      width: 100%;
+      height: auto;
+      cursor: var(--cursor-url), auto;
     }
 
-    header, footer {
+    /* Definieer de variabele voor de cursor en de override voor alle elementen */
+    :root {
+      /* BELANGRIJK: Zorg dat deze plaatjes MAXIMAAL 64x64 pixels zijn (liefst 32x32).
+         Groter werkt niet in de meeste browsers. */
+      --cursor-url: url('links/muis/1.png');
+    }
+    
+    /* FORCEER de custom cursor op werkelijk alles op de pagina */
+    html, body, * {
+      cursor: var(--cursor-url), auto !important;
+    }
+
+    /* Font definitie */
+    @font-face {
+      font-family: 'Avenir';
+      src: url('links/Avenir.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* Scrollbalken verbergen maar functionaliteit behouden */
+    * {
+      box-sizing: border-box; /* Zorgt dat padding overal correct werkt */
+      -ms-overflow-style: none;  /* IE en Edge */
+      scrollbar-width: none;  /* Firefox */
+    }
+    *::-webkit-scrollbar {
+      display: none; /* Chrome, Safari en Opera */
+    }
+
+    /* --- Index / Splash Screen Styles --- */
+    
+    /* Standaard staat de body in 'index-mode' (groot logo centraal) */
+    body.index-mode {
+      height: 100vh;
+      overflow: hidden; /* Geen scrollbalken in intro */
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
       width: 100%;
-      height: 40px; /* Hoogte van de balken verkleind */
-      background-color: #ffffff;
-      position: fixed;
-      left: 0;
-      z-index: 10; /* Zorgt dat ze boven de trillende beelden zweven */
+      /* In manual-mode is de header klein bovenaan */
+      height: 25vh; /* Vaste hoogte maakt animatie van 100vh naar 25vh mogelijk */
+      min-height: 150px; /* Zorg dat het niet te klein wordt */
+      padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
-      font-family: sans-serif;
-      font-size: 10px; /* Tekstgrootte verkleind */
+      background-color: #ffffff;
+      text-align: center;
+      transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1); /* Soepele 'whoosh' animatie */
+      position: relative;
+      z-index: 100;
+      flex-shrink: 0;
+      pointer-events: none; /* Zorgt dat je niet op de witruimte kunt klikken */
     }
 
-    header { top: 0; }
-    footer { bottom: 0; }
-
-    /* Herstelt de flex-centrering door de link-wrapper 'onzichtbaar' te maken voor layout */
-    a {
-      display: contents;
+    /* In index-mode vult de header het scherm, maar we gebruiken padding voor soepele animatie */
+    body.index-mode header {
+      height: 100vh;
     }
 
-    img {
-      max-width: 60%;
+    .header-content {
+      /* De container bepaalt de breedte van het geheel */
+      width: 100%;
+      max-width: 350px; /* Grootte in Manual Mode (kleiner) */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: max-width 0.8s cubic-bezier(0.65, 0, 0.35, 1); /* Smooth scaling */
+      cursor: pointer; /* Alleen de content is klikbaar */
+      /* Zorg dat de content-wrapper de klik vangt, niet de header */
+      pointer-events: auto;
+    }
+
+    /* In index mode is de container groter */
+    body.index-mode .header-content {
+      max-width: 700px; /* Grootte in Index Mode (groot) */
+    }
+
+    /* Het logo vult de container */
+    .manual-title {
+      width: 100%;
       height: auto;
       display: block;
-      animation: vibration 0.3s linear infinite;
     }
 
-    .manual {
-      position: relative;
-      left: -20px;
-      top: -10px;
+    /* De ondertitel is relatief aan de container, verhouding blijft nu altijd vast */
+    .manual-subtitle {
+      width: 55%; /* Altijd 55% van de breedte van de titel erboven */
+      height: auto;
+      margin-top: 4%; /* Ruimte relatief aan grootte */
+      display: block;
     }
 
-    .exist {
-      max-width: 40%; /* Hierdoor wordt de Exist afbeelding kleiner dan de manual */
-      margin-top: 0;
-      margin-left: 10px;
+    /* De trillende animatie voor de index elementen */
+    .vibrate-target {
+      animation: vibration 0.5s linear infinite; /* Snelheid gelijkgetrokken met iconen */
     }
 
-    /* De vibratie/glitch animatie */
     @keyframes vibration {
       0% { transform: translate(calc(var(--v-x) * 1px), calc(var(--v-y) * 1px)) rotate(calc(var(--v-r) * 1deg)); }
       25% { transform: translate(calc(var(--v-x) * -1.5px), calc(var(--v-y) * 2px)) rotate(calc(var(--v-r) * -1.2deg)); }
@@ -64,91 +125,998 @@
       75% { transform: translate(calc(var(--v-x) * -1px), calc(var(--v-y) * -2.5px)) rotate(calc(var(--v-r) * 0.8deg)); }
       100% { transform: translate(calc(var(--v-x) * 1px), calc(var(--v-y) * 1px)); }
     }
-  </style>
- </head>
- <body>
-  <header></header>
-  <a href="manual.html">
-    <img src="links/Woorden/Monoprint_Manual_To.jpg" alt="Monoprint Manual" class="manual">
-  </a>
-  <a href="manual.html">
-    <img src="links/Woorden/Exist.jpg" alt="Subtitle" class="exist" id="subtitle">
-  </a>
-  <footer>&copy; <span id="current-year"></span> Monoprint Manual. All rights reserved.</footer>
 
+    /* --- Einde Index Styles --- */
+
+    /* Container die de video centreert en de iconen relatief daaraan plaatst */
+    .main-container {
+      position: relative;
+      width: 70%; /* Breedte aangepast naar 70% om gelijk te trekken */
+      max-width: 900px; /* Aangepast naar 900px zodat het gelijk is aan de kolommen eronder */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 40px auto 20px auto; /* Centereert de container, minder marge onder */
+    }
+
+    /* Iconen navigatie boven de video */
+    .icon-nav {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      margin: 20px 0; /* Ruimte boven en onder de iconen */
+      z-index: 1;
+    }
+
+    .icon-btn {
+      width: 7%; /* Kleiner gemaakt zodat ze binnen het scherm/tab blijven */
+      height: auto;
+      aspect-ratio: 1 / 1; /* Behoudt vierkante vorm */
+      object-fit: cover;
+      cursor: pointer;
+      border: none;
+      /* Standaard staan de vibratie-waarden op 0 */
+      --i-x: 0; --i-y: 0; --i-r: 0;
+      animation: icon-vibe 0.5s linear infinite;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.9);
+    }
+
+    @keyframes icon-vibe {
+      0% { transform: translate(calc(var(--i-x) * 1px), calc(var(--i-y) * 1px)) rotate(calc(var(--i-r) * 1deg)); }
+      25% { transform: translate(calc(var(--i-x) * -1.2px), calc(var(--i-y) * 1.5px)) rotate(calc(var(--i-r) * -1deg)); }
+      50% { transform: translate(calc(var(--i-x) * 1.8px), calc(var(--i-y) * -0.8px)); }
+      75% { transform: translate(calc(var(--i-x) * -0.8px), calc(var(--i-y) * -2.2px)) rotate(calc(var(--i-r) * 0.5deg)); }
+      100% { transform: translate(calc(var(--i-x) * 1px), calc(var(--i-y) * 1px)); }
+    }
+
+    .video-wrapper {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* 16:9 Aspect Ratio. Pas aan (hoogte / breedte * 100) indien nodig. */
+      border-radius: 20px; /* Ronde hoeken */
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: none;
+    }
+
+    .video-wrapper iframe {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .description-box {
+      width: 100%;
+      /* Start onzichtbaar / ingeklapt */
+      max-height: 0;
+      opacity: 0;
+      margin-top: 0;
+      padding: 0;
+      border: 0px solid #000;
+      overflow: hidden;
+      
+      box-sizing: border-box;
+      border-radius: 20px;
+      text-align: center;
+      font-family: 'Avenir', sans-serif;
+      font-size: 16px;
+      color: #ffffff;
+      background-image: url('links/tooltip.jpg');
+      background-size: cover;
+      background-position: center;
+      transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Coole 'spawn' animatie */
+    }
+
+    .description-box.active {
+      max-height: 300px; /* Genoeg ruimte voor tekst */
+      opacity: 1;
+      margin-top: 20px;
+      padding: 20px;
+      border: 1px solid #000;
+    }
+
+    #click-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    /* Custom Player Styling */
+    .custom-controls {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 20px;
+      background: linear-gradient(transparent, rgba(0,0,0,0.2)); /* Subtiele schaduw voor leesbaarheid */
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 10; /* Zorgt dat de controls boven de klik-overlay komen */
+    }
+
+    .video-wrapper:hover .custom-controls {
+      opacity: 1;
+    }
+
+    .play-pause {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .play-pause svg {
+      width: 100%;
+      height: 100%;
+      text-align: left;
+    }
+
+    .progress-container {
+      flex-grow: 1;
+      height: 2px;
+      background: rgba(255,255,255,0.3);
+      cursor: pointer;
+      position: relative;
+    }
+
+    .progress-bar {
+      height: 100%;
+      background: #ffffff;
+      width: 0%;
+      z-index: 1;
+    }
+
+    .timeline-icons {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 2;
+    }
+
+    .timeline-icon {
+      position: absolute;
+      top: 0;
+      transform: translate(-50%, calc(-100% - 4px)); /* Boven de tijdlijn geplaatst met 4px ruimte */
+      width: 5%;
+      min-width: 15px; /* Zorgt voor leesbaarheid op kleine schermen */
+      height: auto;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background-size: 75%; /* Maakt het witte icoon iets kleiner dan de zwarte cirkel */
+      background-position: center;
+      background-repeat: no-repeat;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .timeline-icon:hover {
+      transform: translate(-50%, calc(-100% - 4px)) scale(1.5);
+    }
+
+    .progress-container:hover .progress-handle {
+      transform: translate(-50%, -50%) scale(1.5);
+    }
+
+    .progress-handle {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      left: 0%;
+      transition: transform 0.2s ease;
+      z-index: 3;
+    }
+
+    .volume-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .volume-icon {
+      width: 16px;
+      height: 16px;
+      display: flex;
+    }
+
+    .volume-slider {
+      width: 50px;
+      height: 2px;
+      appearance: none;
+      -webkit-appearance: none;
+      background: rgba(255,255,255,0.3);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .volume-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+    }
+
+    .volume-slider::-moz-range-thumb {
+      width: 10px;
+      height: 10px;
+      background: white;
+      border-radius: 50%;
+      border: none;
+    }
+
+    /* Content Wrapper om alles na de header te groeperen voor de fade-in */
+    #content-wrapper {
+      opacity: 1;
+      transition: opacity 0.8s ease 0.2s; /* 0.2s vertraging zodat header eerst beweegt */
+    }
+    body.index-mode #content-wrapper {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .retro-grid-container {
+      display: block; /* Grid vervangen zodat we met absolute posities kunnen werken */
+      position: relative;
+      width: 70%; /* Gelijk getrokken met main-container */
+      max-width: 900px;
+      height: auto; /* Kader past zich nu automatisch aan de inhoud aan */
+      margin: 0 auto 50px auto; /* Centereert horizontaal + ruimte onderkant */
+      padding: 0; /* Geen padding in de main container */
+      border: 1px solid #000; /* Outline om het geheel */
+      border-radius: 20px;
+      overflow: hidden; /* Zorgt dat de hoeken van de content ook rond zijn */
+    }
+
+    .info-left {
+      position: absolute; /* Tekst haal je uit de flow, zodat hij de hoogte NIET bepaalt */
+      top: 0; bottom: 0; left: 0;
+      width: 35%; /* De breedte van de linkerkolom */
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto; /* Zorgt dat de tekst scrolt als het te lang is */
+    }
+
+    .info-right {
+      width: 65%; /* De breedte van de rechterkolom */
+      margin-left: 35%; /* Schuif op naar rechts zodat hij naast de tekst staat */
+      padding: 20px; /* Gelijkgetrokken met de tekst-padding */
+      box-sizing: border-box; /* Zorgt dat padding binnen de kadergrootte valt */
+      min-height: 50vh; /* Zorg voor een minimale hoogte zodat het niet inklapt */
+      overflow: hidden; /* Zorgt dat plaatjes niet buiten de bocht vliegen */
+      display: flex;     /* Om de images te centreren */
+      flex-direction: column; /* Slideshows onder elkaar */
+      gap: 20px; /* Ruimte tussen de twee slideshows */
+    }
+
+    .article-column {
+      display: flex;
+      flex-direction: column;
+      gap: 1em; /* Ruimte aangepast naar 1 regelhoogte */
+      justify-content: flex-start;
+    }
+
+    /* Reset headings naar platte tekst stijl (specifiek voor binnen de kolom) */
+    .article-column h2, 
+    .article-column h1, 
+    .article-column h3 {
+      font-size: 24px; /* Titel een stuk groter, maar niet bold */
+      font-weight: normal;
+      margin: 0 0 10px 0; /* Klein beetje witruimte onder de titel */
+    }
+
+    /* Zorg dat de paragrafen zelf geen extra marges toevoegen */
+    .article-column p {
+      margin: 0;
+    }
+
+    .info-footer {
+      width: 100%;
+      height: 40px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 10px;
+      font-family: 'Avenir', sans-serif;
+      background-color: #fff;
+      z-index: 10;
+    }
+    
+    /* Slideshow Styles */
+    .slideshow-container {
+      display: grid;
+      grid-template-areas: "stack";
+      position: relative;
+      width: 100%;
+      min-height: 0; /* Voorkomt overflow problemen in flexbox */
+      border-radius: 20px; /* Forceer ronde hoeken op de container */
+      overflow: hidden; /* Knip alles af wat buiten de ronde hoeken valt */
+    }
+    
+    .slide {
+      grid-area: stack;
+      width: 100%; /* Forceer breedte, hoogte volgt aspect ratio */
+      height: auto; /* Dit zorgt dat de media de hoogte van het kader bepaalt */
+      object-fit: contain;
+      
+      /* Slide setup */
+      transition: transform 0.4s ease-in-out;
+      transform: translateX(100%); /* Standaard rechts buiten beeld wachten */
+      display: block;
+    }
+    
+    .slide.active {
+      transform: translateX(0); /* In het midden */
+      z-index: 2; /* Bovenop */
+    }
+
+    .slide.exit {
+      transform: translateX(-100%); /* Naar links weg */
+      z-index: 1;
+    }
+
+    /* Helper om animatie te resetten zonder dat je het ziet */
+    .slide.no-transition {
+      transition: none !important;
+    }
+
+    /* Specifiek voor de onderste slideshow: grotere ronde hoeken */
+    .info-right .slideshow-container:last-child {
+      border-radius: 30px;
+    }
+
+    /* --- Responsive Styles --- */
+    @media (max-width: 768px) {
+      /* Manual Layout aanpassingen */
+      .main-container {
+        /* Breedte blijft percentage-based (65%) of mag iets breder als pijlen klein zijn, 
+           maar 65% + 50px pijl past op de meeste mobieltjes net. */
+        width: 70%; 
+      }
+      .icon-btn {
+        width: 12%; /* Iets grotere iconen voor touch bediening */
+      }
+
+      /* Info Sectie aanpassingen voor mobiel */
+      .retro-grid-container {
+        display: flex;
+        flex-direction: column;
+      }
+      .info-left {
+        position: relative; /* Op mobiel weer gewoon in de flow */
+        width: 100%;
+        height: auto;
+        overflow-y: visible;
+      }
+      .info-right {
+        width: 100%;
+        margin-left: 0;
+        min-height: auto;
+        padding-bottom: 40px;
+      }
+      
+    }
+  </style>
+</head>
+<body class="index-mode">
+  
+  <!-- Header fungeert nu als Splash én Header -->
+  <header id="mainHeader">
+    <div class="header-content">
+      <!-- Gebruik de image van index.html voor consistentie -->
+      <img src="links/Woorden/Monoprint_Manual_To.jpg" alt="Monoprint Manual" class="manual-title vibrate-target">
+      <img src="links/Woorden/Exist.jpg" alt="Subtitle" class="manual-subtitle vibrate-target" id="subtitle">
+    </div>
+  </header>
+
+  <div id="content-wrapper">
+  <div class="main-container">
+    <div class="video-wrapper">
+      <div id="youtube-player"></div>
+      
+      <div id="click-overlay"></div>
+      <div class="custom-controls">
+        <button class="play-pause" id="playBtn">
+          <svg id="playIcon" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        </button>
+        
+        <div class="progress-container" id="progressContainer">
+          <div class="timeline-icons" id="timelineIcons"></div>
+          <div class="progress-bar" id="progressBar"></div>
+          <div class="progress-handle" id="progressHandle"></div>
+        </div>
+
+        <div class="volume-container">
+          <div class="volume-icon">
+            <svg viewBox="0 0 24 24" fill="white"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+          </div>
+          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.1" value="0">
+        </div>
+      </div>
+    </div>
+
+    <div class="icon-nav">
+      <img src="links/icons/snijwaren.jpg" class="icon-btn" alt="snijwaren">
+      <img src="links/icons/papier.jpg" class="icon-btn" alt="papier">
+      <img src="links/icons/krant.jpg" class="icon-btn" alt="krant">
+      <img src="links/icons/inkt.jpg" class="icon-btn" alt="inkt">
+      <img src="links/icons/spatel.jpg" class="icon-btn" alt="spatel">
+      <img src="links/icons/snijplank.jpg" class="icon-btn" alt="snijplank">
+      <img src="links/icons/roller.jpg" class="icon-btn" alt="roller">
+      <img src="links/icons/deegroller.jpg" class="icon-btn" alt="deegroller">
+      <img src="links/icons/priem.jpg" class="icon-btn" alt="priem">
+      <img src="links/icons/schoonmaakspullen.jpg" class="icon-btn" alt="schoonmaakspullen">
+    </div>
+
+    <!-- Tekstvak met outline, altijd zichtbaar -->
+    <div id="descriptionText" class="description-box"></div>
+  </div>
+
+  <div class="retro-grid-container">
+    <div class="info-left">
+      <div class="article-column">
+        <h2>Monoprint Manual</h2>
+        <p>Hier komt tekst</p>
+      </div>
+    </div>
+    <div class="info-right">
+      <!-- Slideshow 1: Thuis Werk -->
+      <div class="slideshow-container">
+        <img src="links/thuis/werk/1.jpg" class="slide active">
+        <img src="links/thuis/werk/2.jpg" class="slide">
+        <img src="links/thuis/werk/3.jpg" class="slide">
+        <img src="links/thuis/werk/4.jpg" class="slide">
+      </div>
+
+      <!-- Slideshow 2: Thuis Beeld -->
+      <div class="slideshow-container">
+        <img src="links/thuis/beeld/1.jpg" class="slide active">
+        <img src="links/thuis/beeld/2.jpg" class="slide">
+        <img src="links/thuis/beeld/3.jpg" class="slide">
+        <img src="links/thuis/beeld/4.jpg" class="slide">
+      </div>
+    </div>
+  </div>
+
+  <div class="retro-grid-container">
+    <div class="info-left">
+      <div class="article-column">
+        <h2>Media College Amsterdam</h2>
+        <p>Hier komt tekst</p>
+      </div>
+    </div>
+    <div class="info-right">
+      <!-- Slideshow 1: Werk -->
+      <div class="slideshow-container">
+        <!-- Slideshow Images: 1 t/m 14 -->
+        <img src="links/MA/werk/1.jpg" class="slide active">
+        <img src="links/MA/werk/2.jpg" class="slide">
+        <img src="links/MA/werk/3.jpg" class="slide">
+        <img src="links/MA/werk/4.jpg" class="slide">
+        <img src="links/MA/werk/5.jpg" class="slide">
+        <img src="links/MA/werk/6.jpg" class="slide">
+        <img src="links/MA/werk/7.jpg" class="slide">
+        <img src="links/MA/werk/8.jpg" class="slide">
+        <img src="links/MA/werk/9.jpg" class="slide">
+        <img src="links/MA/werk/10.jpg" class="slide">
+        <img src="links/MA/werk/11.jpg" class="slide">
+        <img src="links/MA/werk/12.jpg" class="slide">
+        <img src="links/MA/werk/13.jpg" class="slide">
+        <img src="links/MA/werk/14.jpg" class="slide">
+      </div>
+
+      <!-- Slideshow 2: Beeld -->
+      <div class="slideshow-container">
+        <!-- Slideshow Images: 1 t/m 21 -->
+        <img src="links/MA/beeld/1.jpg" class="slide active">
+        <img src="links/MA/beeld/2.jpg" class="slide">
+        <img src="links/MA/beeld/3.jpg" class="slide">
+        <img src="links/MA/beeld/4.jpg" class="slide">
+        <img src="links/MA/beeld/5.jpg" class="slide">
+        <img src="links/MA/beeld/6.jpg" class="slide">
+        <img src="links/MA/beeld/7.jpg" class="slide">
+        <img src="links/MA/beeld/8.jpg" class="slide">
+        <img src="links/MA/beeld/9.jpg" class="slide">
+        <img src="links/MA/beeld/10.jpg" class="slide">
+        <img src="links/MA/beeld/11.jpg" class="slide">
+        <img src="links/MA/beeld/12.jpg" class="slide">
+        <img src="links/MA/beeld/13.jpg" class="slide">
+        <img src="links/MA/beeld/14.jpg" class="slide">
+        <img src="links/MA/beeld/15.jpg" class="slide">
+        <img src="links/MA/beeld/16.jpg" class="slide">
+        <img src="links/MA/beeld/17.jpg" class="slide">
+        <img src="links/MA/beeld/18.jpg" class="slide">
+        <img src="links/MA/beeld/19.jpg" class="slide">
+        <img src="links/MA/beeld/20.jpg" class="slide">
+        <img src="links/MA/beeld/21.jpg" class="slide">
+      </div>
+    </div>
+  </div>
+  </div>
+  
+  <footer class="info-footer">&copy; <span id="info-year"></span> Monoprint Manual - Franco Soolsma</footer>
+
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
-    // Lijst met alle afbeeldingen in de map 'links/Woorden/' (behalve de manual)
-    // Voeg hier de rest van je bestandsnamen toe tussen de aanhalingstekens
-    const woorden = [
-      "Exist.jpg",
-      "Fight.jpg", 
-      "Protest.jpg", 
-      "Revolt.jpg",
-      "Resist.jpg",
-      "Provocate.jpg",
-      "Inform.jpg",
-      "Unite.jpg",
-      "Love.jpg"
+    // Jaartal in footer
+    document.getElementById('info-year').textContent = new Date().getFullYear();
+
+    // --- Index / Manual Toggle Logic ---
+    const body = document.body;
+    const headerContent = document.querySelector('.header-content');
+    const subtitleElement = document.getElementById('subtitle');
+    
+    // Woordenlijst voor index
+    const woorden = ["Exist.jpg", "Fight.jpg", "Protest.jpg", "Revolt.jpg", "Resist.jpg", "Provocate.jpg", "Inform.jpg", "Unite.jpg", "Love.jpg", "Create.jpg", "Defy.jpg", "Dream.jpg", "Expose.jpg", "Rebel.jpg"];
+    let wordIndex = 0;
+    let lastSwitchTime = 0;
+    
+    // Variabelen voor vibratie intensiteit
+    let vibrationIntensity = 1;
+    let targetVibrationIntensity = 1;
+    let isHoveringHeader = false;
+
+    // Hover detectie voor de header content (Titel + Subtitel)
+    headerContent.addEventListener('mouseenter', () => { isHoveringHeader = true; });
+    headerContent.addEventListener('mouseleave', () => { isHoveringHeader = false; });
+
+    // Klik op header wisselt tussen modes
+    headerContent.addEventListener('click', () => {
+      if (body.classList.contains('index-mode')) {
+        // Ga naar Manual Mode
+        body.classList.remove('index-mode');
+        // Stop video (optioneel, of laat hem ready staan)
+      } else {
+        // Ga terug naar Index Mode
+        body.classList.add('index-mode');
+        // Pauzeer video als je teruggaat naar index
+        if (player && typeof player.pauseVideo === 'function') player.pauseVideo();
+      }
+    });
+
+    // Vibratie Loop voor de Index Header
+    function updateIndexVibration(timestamp) {
+      // Woorden wisselen (blijft nu altijd doorgaan)
+      // Als we hoveren gaat het sneller (100ms), anders rustig (500ms)
+      const speed = isHoveringHeader ? 100 : 500;
+      
+      if (timestamp - lastSwitchTime >= speed) {
+          wordIndex = (wordIndex + 1) % woorden.length;
+          subtitleElement.src = "links/Woorden/" + woorden[wordIndex];
+          lastSwitchTime = timestamp;
+      }
+
+      // Bepaal doel intensiteit
+      if (isHoveringHeader) {
+        targetVibrationIntensity = 3.0; // Versneld/actiever bij hover, maar niet te wild
+      } else {
+        // Als we niet hoveren:
+        // Index mode: rustig aanwezig (was 2.5 -> nu 0.8)
+        // Manual mode: heel subtiel (was 1.0 -> nu 0.3)
+        targetVibrationIntensity = body.classList.contains('index-mode') ? 0.8 : 0.3;
+      }
+
+      // Smooth transition van intensiteit (Ease logic)
+      vibrationIntensity += (targetVibrationIntensity - vibrationIntensity) * 0.05;
+
+      // Zet CSS variabelen op de vibrate-targets
+      document.querySelectorAll('.vibrate-target').forEach(el => {
+          // Geen random meer, maar stabiele waardes die de keyframe-loop aansturen (net als bij de iconen)
+          el.style.setProperty('--v-x', vibrationIntensity * 0.5);
+          el.style.setProperty('--v-y', vibrationIntensity * 0.5);
+          el.style.setProperty('--v-r', vibrationIntensity * 0.2);
+          el.style.setProperty('--v-s', vibrationIntensity * 0.005);
+      });
+      requestAnimationFrame(updateIndexVibration);
+    }
+    requestAnimationFrame(updateIndexVibration);
+
+    // --- Bestaande Scripts ---
+    const playBtn = document.getElementById('playBtn');
+    const playIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>`;
+    const pauseIcon = `<svg viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
+    const progressBar = document.getElementById('progressBar');
+    const progressHandle = document.getElementById('progressHandle');
+    const progressContainer = document.getElementById('progressContainer');
+    const volumeSlider = document.getElementById('volumeSlider');
+    const descriptionText = document.getElementById('descriptionText');
+    const timelineIconsContainer = document.getElementById('timelineIcons');
+
+    let player;
+    let playerReady = false;
+    let timeUpdater; // Houdt de setInterval bij voor de tijdlijn
+    const YOUTUBE_VIDEO_ID = 'utmwsYK2gxA'; // <-- VERVANG DIT met de ID van je YouTube video
+
+    const chapters = [
+      { time: 0, icon: 'snijwaren.png' },
+      { time: 12, icon: 'papier.png' },
+      { time: 144, icon: 'papier.png' },
+      { time: 175, icon: 'snijplank.png' },
+      { time: 185, icon: 'inkt.png', visualTime: 183 },
+      { time: 188, icon: 'spatel.png', visualTime: 191 },
+      { time: 192, icon: 'roller.png', visualTime: 199 },
+      { time: 207, icon: 'krant.png' },
+      { time: 217, icon: 'deegroller.png' },
+      { time: 295, icon: 'priem.png' }
     ];
 
-    let index = 0;
-    const subtitleElement = document.getElementById('subtitle');
+    let hoveredElement = null;
 
-    // Zet het jaartal automatisch op het huidige jaar
-    document.getElementById('current-year').textContent = new Date().getFullYear();
+    // Beheer intensiteit per icoon voor een vloeiende ease-out
+    const iconButtons = document.querySelectorAll('.icon-btn');
+    const iconStates = new Map();
+    iconButtons.forEach(btn => iconStates.set(btn, { current: 0 }));
 
-    // Intensiteit beheer voor de vibratie
-    let intensity = 1;
-    let targetIntensity = 1;
-    let isHovering = false;
+    // Placeholder teksten per icoon
+    const info = {
+      'snijwaren': 'Om je sjablonen te maken heb je gereedschap nodig, met snijgerei en een lijmstift kom je al een heel eind!',
+      'papier': 'De vormen/sjablonen bestaan uit papier, het is aan te raden om een hoog glansend papier te gebruiken zoals fotopapier. Dit papier heeft een matte en een glansende zijde. Op de matte zijde kun je eventueel een ontwerp schetsen, aangezien we in spiegelbeeld werken staat je beeld dan direct goed op het drukvel. Op de glansende zeide van het papier breng je de inkt aan, door deze coat absorbeert het papier minder inkt en kun je efficiënter te werk gaan. Ook kun je texturen afdrukken zoals: behang, mandarijnnetje, bubbelplastic, karton, etc.',
+      'krant': 'Restpapier zoals oude kranten werken goed om je afdrukken te beschermen van smet! (En houd je werkplek schoon)',
+      'inkt': 'lino ink for block printing ESSDEE. Deze inkt is op waterbasis, gemakkelijk om je gereedschap en materialen schoon te krijgen. Een nadeel is dat de inkt snel droog is, dus per sjabloon inkt aanbrengen!',
+      'spatel': 'Elke spatel voldoet om de inkt te verspreiden over je inktplaat/inkttafel.',
+      'snijplank': 'Een snijplank van plastic/rubber materiaal leent zich goed als huishoudelijke inkttafel! (Daarna geen voedsel meer op snijden)',
+      'roller': 'ESSDEE verkoopt naast hun inkt ook mooie inktrollers waarmee je de sjablonen kan in inkten. (De rollers kun je onderhouden met wat natuurlijke olie, zo gaat het rubber langer mee)',
+      'deegroller': 'Heb je geen toegang tot een pers? Gebruik dan gewoon een deegroller om een afdruk te maken!',
+      'priem': 'Een prikpen, spelt of een priem dient zich om de plakkerige sjablonen van je drukvel af te krijgen.',
+      'schoonmaakspullen': 'Dankzij dat de inkt op waterbasis is, zijn de gereedschappen gemakkelijk schoon te krijgen met water en afwasmiddel. Afdrogen met een microvezeldoek'
+    };
 
-    // Selecteer de afbeeldingen voor de hover-interactie
-    document.querySelectorAll('img').forEach(img => {
-      img.addEventListener('mouseenter', () => { isHovering = true; });
-      img.addEventListener('mouseleave', () => { isHovering = false; });
-    });
+    // Helper functie voor de animatie van de tooltip
+    let animTimeout;
+    function updateDescription(text) {
+      if (animTimeout) clearTimeout(animTimeout);
 
-    window.addEventListener('mousemove', () => {
-      // Alleen de algemene trilling triggeren als we niet op een afbeelding staan
-      if (!isHovering) targetIntensity = 2.5;
-    });
-
-    let lastSwitchTime = 0;
-
-    // De 'Afzak' loop
-    function updateVibration(timestamp) {
-      // Als we hoveren, dwingen we de intensiteit naar een agressief niveau
-      if (isHovering) {
-        targetIntensity = 7;
+      // Als de box nog dicht is, open hem met de standaard CSS animatie
+      if (!descriptionText.classList.contains('active')) {
+        descriptionText.textContent = text;
+        requestAnimationFrame(() => descriptionText.classList.add('active'));
+        return;
       }
 
-      // Dynamische wisselsnelheid op basis van intensiteit
-      // We mappen intensity 1 naar 500ms en intensity 7 naar 100ms
-      const speedFactor = Math.min(Math.max((intensity - 1) / 6, 0), 1);
-      const currentInterval = 500 - (speedFactor * 400);
-
-      if (timestamp - lastSwitchTime >= currentInterval) {
-        index = (index + 1) % woorden.length;
-        subtitleElement.src = "links/Woorden/" + woorden[index];
-        lastSwitchTime = timestamp;
-      }
-
-      // Ease-out: we bewegen de huidige intensiteit langzaam naar de target
-      intensity += (targetIntensity - intensity) * 0.03;
-
-      // Als we niet meer bewegen, moet de target weer naar de ruststand (1)
-      if (targetIntensity > 1) targetIntensity -= 0.1;
-      if (targetIntensity < 1) targetIntensity = 1;
-
-      // Update de CSS variabelen op de body zodat de animatie ze gebruikt
-      document.body.style.setProperty('--v-x', intensity * 0.7);
-      document.body.style.setProperty('--v-y', intensity * 0.5);
-      document.body.style.setProperty('--v-r', intensity * 0.1);
-      document.body.style.setProperty('--v-s', (intensity - 1) * 0.005);
-
-      requestAnimationFrame(updateVibration);
+      // Box is al open: 'morph' naar de nieuwe afmetingen
+      const startHeight = descriptionText.offsetHeight;
+      
+      // 1. Zet de hoogte vast op de huidige pixels
+      descriptionText.style.height = startHeight + 'px';
+      descriptionText.style.maxHeight = 'none'; // Voorkom dat max-height het meten beïnvloedt
+      
+      // 2. Verander de inhoud
+      descriptionText.textContent = text;
+      
+      // 3. Meet de nieuwe hoogte
+      descriptionText.style.height = 'auto';
+      const newHeight = descriptionText.offsetHeight;
+      
+      // 4. Zet terug naar start en forceer reflow voor de transitie
+      descriptionText.style.height = startHeight + 'px';
+      void descriptionText.offsetWidth; 
+      
+      // 5. Animeer naar nieuwe hoogte
+      descriptionText.style.height = newHeight + 'px';
+      
+      // 6. Cleanup na animatie (0.6s matcht de CSS transition)
+      animTimeout = setTimeout(() => {
+        descriptionText.style.height = '';
+        descriptionText.style.maxHeight = '';
+      }, 600);
     }
-    requestAnimationFrame(updateVibration);
+
+    // Event listeners voor de iconen
+    iconButtons.forEach(btn => {
+      btn.addEventListener('mouseenter', () => { hoveredElement = btn; });
+      btn.addEventListener('mouseleave', () => { hoveredElement = null; });
+      
+      btn.addEventListener('click', () => {
+        const tool = btn.alt;
+        if (info[tool]) {
+          updateDescription(info[tool]);
+          
+          // Update actieve status van het icoon
+          iconButtons.forEach(b => b.classList.remove('active-tool'));
+          btn.classList.add('active-tool');
+        }
+      });
+    });
+
+    // Vibratie Loop (met Ease)
+    // Hernoemd naar updateIconVibration om conflict te voorkomen
+    function updateIconVibration() {
+      iconButtons.forEach(btn => {
+        let state = iconStates.get(btn);
+        let target = 0;
+
+        if (btn === hoveredElement) {
+          target = btn.classList.contains('active-tool') ? 0.8 : 2.0;
+        } else if (btn.classList.contains('active-tool')) {
+          target = 0.8;
+        }
+
+        // Individuele ease-out berekening
+        state.current += (target - state.current) * 0.02;
+
+        // Pas variabelen direct toe op het specifieke icoon
+        btn.style.setProperty('--i-x', state.current * 1.0);
+        btn.style.setProperty('--i-y', state.current * 0.8);
+        btn.style.setProperty('--i-r', state.current * 0.2);
+      });
+
+      requestAnimationFrame(updateIconVibration);
+    }
+    requestAnimationFrame(updateIconVibration);
+
+    // --- Slideshow Script voor Info Pagina ---
+    // Selecteer alle containers en start voor elk een eigen timer
+    document.querySelectorAll('.slideshow-container').forEach(container => {
+      const slides = Array.from(container.querySelectorAll('.slide'));
+      if (slides.length === 0) return;
+
+      let currentIndex = 0;
+      let interval;
+      let pressStartTime = 0;
+
+      // Initialisatie: Zet alles goed
+      slides.forEach((slide, index) => {
+        slide.classList.remove('active', 'exit');
+        if (index === 0) {
+          slide.classList.add('active');
+        } else {
+          // Zorg dat de rest rechts staat
+          slide.style.transform = 'translateX(100%)';
+        }
+      });
+
+      const nextSlide = () => {
+        const current = slides[currentIndex];
+        currentIndex = (currentIndex + 1) % slides.length;
+        const next = slides[currentIndex];
+
+        // 1. Huidige slide schuift naar links weg
+        current.classList.remove('active');
+        current.classList.add('exit');
+
+        // 2. Volgende slide (die rechts stond) schuift naar binnen
+        next.classList.remove('exit'); // Voor de zekerheid
+        next.classList.remove('no-transition');
+        next.style.transform = ''; // Zorg dat er geen oude inline styles in de weg zitten
+
+        // Forceer een 'reflow' zodat de browser snapt dat hij moet animeren van 100% naar 0%
+        void next.offsetWidth; 
+        next.classList.add('active');
+
+        // 3. De slide die net naar links ('exit') is gegaan, moet stiekem weer naar rechts
+        // We wachten tot de animatie (0.4s) voorbij is
+        setTimeout(() => {
+          if (current.classList.contains('exit')) {
+            current.classList.add('no-transition'); // Geen animatie
+            current.classList.remove('exit');
+            current.style.transform = ''; // Laat de CSS (.slide) hem weer rechts zetten
+          }
+        }, 400); // Gelijk aan CSS transition tijd
+      };
+
+      const startTimer = () => {
+        if (interval) clearInterval(interval);
+        interval = setInterval(nextSlide, 3000);
+      };
+
+      const stopTimer = () => {
+        if (interval) clearInterval(interval);
+      };
+
+      // Start automatisch
+      startTimer();
+
+      // --- Instagram-style Interactie ---
+      // Muis/Touch in: Pauzeer
+      const handleStart = () => { stopTimer(); pressStartTime = Date.now(); };
+      // Muis/Touch uit: Hervat (en check of het een klik was)
+      const handleEnd = () => {
+        startTimer();
+        const duration = Date.now() - pressStartTime;
+        // Als de klik korter was dan 250ms, zien we het als een 'tap' -> volgende slide
+        if (duration < 250) {
+          nextSlide();
+        }
+      };
+
+      container.addEventListener('mousedown', handleStart);
+      container.addEventListener('touchstart', handleStart, {passive: true});
+      
+      container.addEventListener('mouseup', handleEnd);
+      container.addEventListener('mouseleave', handleEnd); // Als je de muis weghalt tijdens klikken
+      container.addEventListener('touchend', handleEnd);
+    });
+
+    // --- YouTube Player API Setup ---
+
+    // Deze functie wordt automatisch aangeroepen door de YouTube API script
+    function onYouTubeIframeAPIReady() {
+    player = new YT.Player('youtube-player', {
+    host: 'https://www.youtube-nocookie.com',   // ← DEZE ONTBRAK
+    videoId: YOUTUBE_VIDEO_ID,
+    playerVars: {
+      autoplay: 1,
+      controls: 0,
+      loop: 1,
+      playlist: YOUTUBE_VIDEO_ID,
+      rel: 0,
+      modestbranding: 1,
+      iv_load_policy: 3,
+      playsinline: 1,
+      enablejsapi: 1,
+      origin: window.location.origin
+      },
+        events: {
+          'onReady': onPlayerReady,
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
+
+    // De API roept deze functie aan wanneer de speler klaar is.
+    function onPlayerReady(event) {
+      playerReady = true;
+      event.target.mute(); // Start gedempt, net als de vorige video
+      event.target.playVideo();  // start direct
+      volumeSlider.value = 0; // Synchroniseer de volume slider
+
+      // Plaats de icoontjes op de tijdlijn (vervangt 'loadedmetadata' event)
+      const duration = player.getDuration();
+      if (!duration) return;
+
+      chapters.forEach(chapter => {
+        const positionTime = chapter.visualTime !== undefined ? chapter.visualTime : chapter.time;
+        const percent = (positionTime / duration) * 100;
+        if (percent >= 0 && percent <= 100) {
+          const iconEl = document.createElement('div');
+          iconEl.className = 'timeline-icon';
+          iconEl.style.left = `${percent}%`;
+          iconEl.style.backgroundImage = `url(links/icons_png/${chapter.icon})`;
+          iconEl.addEventListener('click', () => {
+            player.seekTo(chapter.time, true); // Gebruik de YouTube API
+            const tool = chapter.icon.replace('.png', '');
+            if (info[tool]) {
+              updateDescription(info[tool]);
+            }
+            const topIcon = Array.from(iconButtons).find(btn => btn.alt === tool);
+            if (topIcon) {
+              iconButtons.forEach(b => b.classList.remove('active-tool'));
+              topIcon.classList.add('active-tool');
+            }
+          });
+          timelineIconsContainer.appendChild(iconEl);
+        }
+      });
+    }
+
+    // De API roept deze functie aan als de status van de speler verandert (play, pause, etc.)
+    function onPlayerStateChange(event) {
+      if (event.data == YT.PlayerState.PLAYING) {
+        playBtn.innerHTML = pauseIcon;
+        // Start onze eigen 'timeupdate' loop
+        clearInterval(timeUpdater);
+        timeUpdater = setInterval(updatePlayerTime, 250);
+      } else {
+        playBtn.innerHTML = playIcon;
+        // Stop de loop als de video pauzeert of stopt
+        clearInterval(timeUpdater);
+      }
+    }
+
+    // Functie om de tijdlijn UI te updaten, omdat we geen 'timeupdate' event meer hebben
+    function updatePlayerTime() {
+      if (!isDragging && playerReady && player.getDuration) {
+        const percent = (player.getCurrentTime() / player.getDuration()) * 100;
+        updateUI(percent);
+      }
+    }
+
+    // Play/Pause toggle
+    const togglePlay = () => {
+      if (!playerReady) return;
+      const state = player.getPlayerState();
+      if (state === YT.PlayerState.PLAYING) {
+        player.pauseVideo();
+      } else {
+        player.playVideo();
+      }
+    };
+
+    playBtn.addEventListener('click', togglePlay);
+    document.getElementById('click-overlay').addEventListener('click', togglePlay);
+
+    // Tijdlijn verslepen (Drag logic)
+    let isDragging = false;
+
+    function updateUI(percent) {
+      progressBar.style.width = `${percent}%`;
+      progressHandle.style.left = `${percent}%`;
+    }
+
+    function scrub(e) {
+      if (!playerReady || !player.getDuration) return;
+      const rect = progressContainer.getBoundingClientRect();
+      const pos = (e.clientX - rect.left) / rect.width;
+      const clampedPos = Math.max(0, Math.min(1, pos));
+      
+      updateUI(clampedPos * 100);
+      player.seekTo(clampedPos * player.getDuration(), true);
+    }
+
+    progressContainer.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      scrub(e);
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (isDragging) scrub(e);
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+    });
+
+    // Volume control
+    volumeSlider.addEventListener('input', (e) => {
+      if (!playerReady) return;
+      const volume = e.target.value;
+      player.setVolume(volume * 100); // YouTube API gebruikt 0-100
+      if (volume > 0 && player.isMuted()) {
+        player.unMute();
+      } else if (volume == 0 && !player.isMuted()) {
+        player.mute();
+      }
+    });
+
+    // --- Mouse Cursor Randomizer ---
+    const cursorImages = [
+      "links/muis/1.png",
+      "links/muis/2.png",
+      "links/muis/3.png"
+    ];
+
+    // Preload de afbeeldingen: dit zorgt dat ze direct beschikbaar zijn bij het klikken
+    cursorImages.forEach(src => {
+      const img = new Image();
+      img.src = src;
+    });
+
+    function randomizeCursor() {
+      const randomIndex = Math.floor(Math.random() * cursorImages.length);
+      document.documentElement.style.setProperty('--cursor-url', `url('${cursorImages[randomIndex]}')`);
+    }
+
+    // Verander cursor bij elke muisklik (mousedown voelt directer dan click)
+    window.addEventListener('mousedown', randomizeCursor);
+
+    // URL visueel opschonen (verwijdert .html uit de adresbalk)
+    // Dit werkt nadat je dit bestand hernoemd hebt naar index.html
+    if (window.history.replaceState) {
+      const path = window.location.pathname.replace(/\/index\.html$/, '/');
+      window.history.replaceState(null, '', path);
+    }
   </script>
- </body>
- </html>
+</body>
+</html>
