@@ -2,6 +2,9 @@
 <html>
 <head>
   <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>Monoprint Manual</title>
   <style>
     body {
@@ -136,7 +139,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin: 40px auto 20px auto; /* Centereert de container, minder marge onder */
+      margin: 0 auto 20px auto; /* Marge boven verwijderd zodat video dichter op tekst staat */
     }
 
     /* Iconen navigatie boven de video */
@@ -145,7 +148,7 @@
       width: 100%;
       display: flex;
       justify-content: space-between;
-      margin: 20px 0; /* Ruimte boven en onder de iconen */
+      margin: 0 0 10px 0; /* Ruimte boven via titel, ruimte onder verkleind */
       z-index: 1;
     }
 
@@ -156,9 +159,13 @@
       object-fit: cover;
       cursor: pointer;
       border: none;
+      transition: transform 0.2s ease;
       /* Standaard staan de vibratie-waarden op 0 */
       --i-x: 0; --i-y: 0; --i-r: 0;
-      animation: icon-vibe 0.5s linear infinite;
+    }
+
+    .icon-btn:hover, .icon-btn.active {
+      transform: scale(1.25);
     }
 
     .icon-btn:active {
@@ -191,34 +198,44 @@
       height: 100%;
     }
 
-    .description-box {
+    .necessities-title {
       width: 100%;
-      /* Start onzichtbaar / ingeklapt */
-      max-height: 0;
-      opacity: 0;
-      margin-top: 0;
-      padding: 0;
-      border: 0px solid #000;
-      overflow: hidden;
-      
-      box-sizing: border-box;
-      border-radius: 20px;
       text-align: center;
       font-family: 'Avenir', sans-serif;
       font-size: 16px;
-      color: #ffffff;
-      background-image: url('links/tooltip.jpg');
-      background-size: cover;
-      background-position: center;
-      transition: all 0.6s cubic-bezier(0.25, 1, 0.5, 1); /* Coole 'spawn' animatie */
+      margin-top: 60px;
+      margin-bottom: 40px;
+      color: #333;
     }
 
-    .description-box.active {
-      max-height: 300px; /* Genoeg ruimte voor tekst */
-      opacity: 1;
-      margin-top: 20px;
-      padding: 20px;
-      border: 1px solid #000;
+    .description-box {
+      /* Match project-status styling */
+      width: 85%; /* ~60% van schermbreedte (want parent is 70%) */
+      max-width: 800px;
+      min-height: 220px; /* Vaste hoogte voor statisch kader */
+      
+      /* Start onzichtbaar / ingeklapt */
+      opacity: 1; /* Altijd zichtbaar */
+      transform: scale(1); /* Altijd normale grootte */
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start; /* Uitlijnen aan de bovenkant zodat regel 1 vaststaat */
+      text-align: center;
+      font-family: 'Avenir', sans-serif;
+      font-size: 14px; /* Zelfde grootte als project tekst */
+      color: #333; /* Donkere tekst op witte achtergrond */
+      background-color: #ffffff;
+      padding: 35px 20px; /* Vaste ruimte bovenin */
+      margin: 0 0 20px 0;
+    }
+
+    .tooltip-title {
+      font-size: 16px;
+      font-weight: normal;
+      margin-bottom: 5px;
+      display: block;
     }
 
     #click-overlay {
@@ -282,34 +299,6 @@
       background: #ffffff;
       width: 0%;
       z-index: 1;
-    }
-
-    .timeline-icons {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 2;
-    }
-
-    .timeline-icon {
-      position: absolute;
-      top: 0;
-      transform: translate(-50%, calc(-100% - 4px)); /* Boven de tijdlijn geplaatst met 4px ruimte */
-      width: 5%;
-      min-width: 15px; /* Zorgt voor leesbaarheid op kleine schermen */
-      height: auto;
-      aspect-ratio: 1 / 1;
-      border-radius: 50%;
-      background-size: 75%; /* Maakt het witte icoon iets kleiner dan de zwarte cirkel */
-      background-position: center;
-      background-repeat: no-repeat;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-    }
-    .timeline-icon:hover {
-      transform: translate(-50%, calc(-100% - 4px)) scale(1.5);
     }
 
     .progress-container:hover .progress-handle {
@@ -377,114 +366,153 @@
       pointer-events: none;
     }
 
-    .retro-grid-container {
-      display: block; /* Grid vervangen zodat we met absolute posities kunnen werken */
-      position: relative;
-      width: 70%; /* Gelijk getrokken met main-container */
-      max-width: 900px;
-      height: auto; /* Kader past zich nu automatisch aan de inhoud aan */
-      margin: 0 auto 50px auto; /* Centereert horizontaal + ruimte onderkant */
-      padding: 0; /* Geen padding in de main container */
-      border: 1px solid #000; /* Outline om het geheel */
-      border-radius: 20px;
-      overflow: hidden; /* Zorgt dat de hoeken van de content ook rond zijn */
-    }
-
-    .info-left {
-      position: absolute; /* Tekst haal je uit de flow, zodat hij de hoogte NIET bepaalt */
-      top: 0; bottom: 0; left: 0;
-      width: 35%; /* De breedte van de linkerkolom */
-      padding: 20px;
-      box-sizing: border-box;
-      overflow-y: auto; /* Zorgt dat de tekst scrolt als het te lang is */
-    }
-
-    .info-right {
-      width: 65%; /* De breedte van de rechterkolom */
-      margin-left: 35%; /* Schuif op naar rechts zodat hij naast de tekst staat */
-      padding: 20px; /* Gelijkgetrokken met de tekst-padding */
-      box-sizing: border-box; /* Zorgt dat padding binnen de kadergrootte valt */
-      min-height: 50vh; /* Zorg voor een minimale hoogte zodat het niet inklapt */
-      overflow: hidden; /* Zorgt dat plaatjes niet buiten de bocht vliegen */
-      display: flex;     /* Om de images te centreren */
-      flex-direction: column; /* Slideshows onder elkaar */
-      gap: 20px; /* Ruimte tussen de twee slideshows */
-    }
-
-    .article-column {
-      display: flex;
-      flex-direction: column;
-      gap: 1em; /* Ruimte aangepast naar 1 regelhoogte */
-      justify-content: flex-start;
-    }
-
-    /* Reset headings naar platte tekst stijl (specifiek voor binnen de kolom) */
-    .article-column h2, 
-    .article-column h1, 
-    .article-column h3 {
-      font-size: 24px; /* Titel een stuk groter, maar niet bold */
-      font-weight: normal;
-      margin: 0 0 10px 0; /* Klein beetje witruimte onder de titel */
-    }
-
-    /* Zorg dat de paragrafen zelf geen extra marges toevoegen */
-    .article-column p {
-      margin: 0;
-    }
-
     .info-footer {
       width: 100%;
-      height: 40px;
+      height: 20px;
       display: flex;
       justify-content: center;
       align-items: center;
       font-size: 10px;
       font-family: 'Avenir', sans-serif;
-      background-color: #fff;
+      background-color: transparent;
+      z-index: 0;
+    }
+
+    /* --- Waslijn / Droogrek Styles --- */
+    .clothesline-section {
+      width: 100%;
+      margin-top: 80px;
+      position: relative;
+      padding-bottom: 40px;
+      width: 100%;
+      overflow: hidden; /* Zorgt dat de pagina niet breed wordt, alleen de inhoud scrollt */
+    }
+
+    .rope {
+      position: absolute;
+      top: 50px; /* Iets lager gezet ivm ruimere padding */
+      left: 0;
+      width: 100%; /* Breedte van het scherm (parent container) */
+      height: 10px; /* Iets hoger voor de SVG golf */
+      /* Fineliner effect: SVG achtergrond in plaats van strakke border */
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='10' viewBox='0 0 200 10'%3E%3Cpath d='M0,5 C50,4 100,6 150,5 C170,4.5 190,5.5 200,5' stroke='%23333' stroke-width='0.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: repeat-x;
+      background-position: left center;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hanging-items-wrapper {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-wrap: nowrap; /* Zorgt dat items op één lijn blijven */
+      width: 100%;
+      overflow-x: auto; /* De items scrollen hier */
+      -webkit-overflow-scrolling: touch;
+      /* Scrollbars verbergen */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+
+      justify-content: flex-start; /* Links beginnen */
+      /* Padding links berekend om te lijnen met .main-container (max 900px, 70% width) */
+      padding-left: max((100% - 900px) / 2, 15%);
+      padding-right: max((100% - 900px) / 2, 15%); /* Zelfde padding rechts, zodat laatste item netjes uitlijnt */
+      gap: 60px; /* Iets meer ruimte tussen de werken */
+      align-items: flex-start;
+      padding-top: 50px; /* Meer ruimte boven zodat de 'top' van de works niet afgekapt wordt bij rotatie */
+      padding-bottom: 150px; /* Veel ruimte onder zodat schaduwen en wigglen niet worden afgesneden */
+    }
+
+    .hanging-items-wrapper::-webkit-scrollbar {
+      display: none;
+    }
+
+    .hanging-item {
+      position: relative;
+      background: #fff;
+      padding: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtielere schaduw */
+      transform-origin: top center;
+      --rotation: 0deg;
+      transform: rotate(var(--rotation));
+      /* Transition verwijderd voor transform zodat JS de FLIP animatie strak kan overnemen zonder conflict */
+      transition: box-shadow 0.2s ease; 
+      max-width: 250px;
+      z-index: 2; /* Zorg dat de werken BOVEN de lijn (z-index 1) liggen */
+      flex-shrink: 0; /* Voorkomt dat items kleiner worden als de lijn vol raakt */
+      cursor: pointer;
+    }
+
+    .hanging-items-wrapper .hanging-item:hover {
       z-index: 10;
     }
-    
-    /* Slideshow Styles */
-    .slideshow-container {
-      display: grid;
-      grid-template-areas: "stack";
-      position: relative;
-      width: 100%;
-      min-height: 0; /* Voorkomt overflow problemen in flexbox */
-      border-radius: 20px; /* Forceer ronde hoeken op de container */
-      overflow: hidden; /* Knip alles af wat buiten de ronde hoeken valt */
+
+    /* Class om het item aan de waslijn te verbergen als de lightbox open is */
+    .hanging-item.is-open {
+      opacity: 0;
+      pointer-events: none;
     }
-    
-    .slide {
-      grid-area: stack;
-      width: 100%; /* Forceer breedte, hoogte volgt aspect ratio */
-      height: auto; /* Dit zorgt dat de media de hoogte van het kader bepaalt */
-      object-fit: contain;
-      
-      /* Slide setup */
-      transition: transform 0.4s ease-in-out;
-      transform: translateX(100%); /* Standaard rechts buiten beeld wachten */
+
+    .hanging-item img {
       display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* --- Lightbox Styles --- */
+    .lightbox-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      /* Animatie instellingen */
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease; /* Alleen fade voor achtergrond */
+      /* Flexbox voor centreren */
+      display: flex; 
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      cursor: pointer; /* Laat zien dat je overal kan klikken om te sluiten */
+    }
+
+    .lightbox-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .lightbox-content {
+      max-width: 70%;
+      max-height: 80vh;
+      border: 3px solid white;
+      box-shadow: 0 0 25px rgba(0,0,0,0.5);
+      transform-origin: center center;
+      cursor: zoom-out;
     }
     
-    .slide.active {
-      transform: translateX(0); /* In het midden */
-      z-index: 2; /* Bovenop */
-    }
-
-    .slide.exit {
-      transform: translateX(-100%); /* Naar links weg */
-      z-index: 1;
-    }
-
-    /* Helper om animatie te resetten zonder dat je het ziet */
-    .slide.no-transition {
-      transition: none !important;
-    }
-
-    /* Specifiek voor de onderste slideshow: grotere ronde hoeken */
-    .info-right .slideshow-container:last-child {
-      border-radius: 30px;
+    /* --- Project Text Status --- */
+    .project-status {
+      width: 60%; /* Iets smaller dan de retro marge */
+      max-width: 800px;
+      min-height: 300px; /* Vaste hoogte iets verlaagd zodat video dichterbij komt */
+      margin: -120px auto 0 auto; /* Gecentreerd en omhoog getrokken */
+      display: flex; /* Flexbox voor centreren van tekst */
+      flex-direction: column;
+      justify-content: flex-start; /* Uitlijnen aan de bovenkant zodat titel niet springt */
+      text-align: center;
+      font-family: 'Avenir', sans-serif;
+      font-size: 14px;
+      color: #333;
+      position: relative;
+      z-index: 5;
+      font-weight: normal;
+      border: none; /* Outline verwijderd */
+      background-color: #fff; /* Witte achtergrond voor leesbaarheid */
+      padding: 40px 0 20px 0; /* Ruime padding bovenin zorgt voor vaste titelpositie */
     }
 
     /* --- Responsive Styles --- */
@@ -497,24 +525,6 @@
       }
       .icon-btn {
         width: 12%; /* Iets grotere iconen voor touch bediening */
-      }
-
-      /* Info Sectie aanpassingen voor mobiel */
-      .retro-grid-container {
-        display: flex;
-        flex-direction: column;
-      }
-      .info-left {
-        position: relative; /* Op mobiel weer gewoon in de flow */
-        width: 100%;
-        height: auto;
-        overflow-y: visible;
-      }
-      .info-right {
-        width: 100%;
-        margin-left: 0;
-        min-height: auto;
-        padding-bottom: 40px;
       }
       
     }
@@ -532,6 +542,24 @@
   </header>
 
   <div id="content-wrapper">
+    <!-- Waslijn Concept -->
+    <div class="clothesline-section">
+      <div class="rope"></div>
+      <div class="hanging-items-wrapper" id="clotheslineSection">
+        <!-- Thuis Sectie -->
+        <div class="hanging-item">
+          <img src="links/thuis/beeld/2.jpg" alt="Monoprint Work">
+        </div>
+        <div class="hanging-item">
+          <img src="links/thuis/beeld/3.jpg" alt="Monoprint Work">
+        </div>
+        <!-- MA Sectie (wordt aangevuld door JS) -->
+      </div>
+    </div>
+    
+    <!-- Statisch Tekst Kader -->
+    <div class="project-status" id="projectLabel"><span style="font-size: 16px; display: block; margin-bottom: 25px;">Monoprint Manual To...</span><span style="display: block; margin-bottom: 25px;">Hoe kom je in aanraking met analoge grafische technieken wanneer je hier nooit aan bent geïntroduceerd? Bij welke werkplaatsen kun jij makend terecht na het afstuderen aan de kunstacademie?</span>Tijdens dit project heb ik geprobeerd de analoge techniek ‘Monoprint’ toegankelijk te maken voor verschillende groepen mensen. Bewust maken hoe je zonder ervaring, kunstacademie, werkplaats of budget toch een communicatiemiddel en ontwerp kan creëren in een korte tijd. Een techniek die zich leent om anoniem te blijven, provoceert maar ook reageert op de handelingen van de maker.</div>
+
   <div class="main-container">
     <div class="video-wrapper">
       <div id="youtube-player"></div>
@@ -543,7 +571,6 @@
         </button>
         
         <div class="progress-container" id="progressContainer">
-          <div class="timeline-icons" id="timelineIcons"></div>
           <div class="progress-bar" id="progressBar"></div>
           <div class="progress-handle" id="progressHandle"></div>
         </div>
@@ -556,6 +583,8 @@
         </div>
       </div>
     </div>
+
+    <div class="necessities-title">Benodigdheden</div>
 
     <div class="icon-nav">
       <img src="links/icons/snijwaren.jpg" class="icon-btn" alt="snijwaren">
@@ -573,93 +602,26 @@
     <!-- Tekstvak met outline, altijd zichtbaar -->
     <div id="descriptionText" class="description-box"></div>
   </div>
-
-  <div class="retro-grid-container">
-    <div class="info-left">
-      <div class="article-column">
-        <h2>Monoprint Manual</h2>
-        <p>Hier komt tekst</p>
-      </div>
-    </div>
-    <div class="info-right">
-      <!-- Slideshow 1: Thuis Werk -->
-      <div class="slideshow-container">
-        <img src="links/thuis/werk/1.jpg" class="slide active">
-        <img src="links/thuis/werk/2.jpg" class="slide">
-        <img src="links/thuis/werk/3.jpg" class="slide">
-        <img src="links/thuis/werk/4.jpg" class="slide">
-      </div>
-
-      <!-- Slideshow 2: Thuis Beeld -->
-      <div class="slideshow-container">
-        <img src="links/thuis/beeld/1.jpg" class="slide active">
-        <img src="links/thuis/beeld/2.jpg" class="slide">
-        <img src="links/thuis/beeld/3.jpg" class="slide">
-        <img src="links/thuis/beeld/4.jpg" class="slide">
-      </div>
-    </div>
-  </div>
-
-  <div class="retro-grid-container">
-    <div class="info-left">
-      <div class="article-column">
-        <h2>Media College Amsterdam</h2>
-        <p>Hier komt tekst</p>
-      </div>
-    </div>
-    <div class="info-right">
-      <!-- Slideshow 1: Werk -->
-      <div class="slideshow-container">
-        <!-- Slideshow Images: 1 t/m 14 -->
-        <img src="links/MA/werk/1.jpg" class="slide active">
-        <img src="links/MA/werk/2.jpg" class="slide">
-        <img src="links/MA/werk/3.jpg" class="slide">
-        <img src="links/MA/werk/4.jpg" class="slide">
-        <img src="links/MA/werk/5.jpg" class="slide">
-        <img src="links/MA/werk/6.jpg" class="slide">
-        <img src="links/MA/werk/7.jpg" class="slide">
-        <img src="links/MA/werk/8.jpg" class="slide">
-        <img src="links/MA/werk/9.jpg" class="slide">
-        <img src="links/MA/werk/10.jpg" class="slide">
-        <img src="links/MA/werk/11.jpg" class="slide">
-        <img src="links/MA/werk/12.jpg" class="slide">
-        <img src="links/MA/werk/13.jpg" class="slide">
-        <img src="links/MA/werk/14.jpg" class="slide">
-      </div>
-
-      <!-- Slideshow 2: Beeld -->
-      <div class="slideshow-container">
-        <!-- Slideshow Images: 1 t/m 21 -->
-        <img src="links/MA/beeld/1.jpg" class="slide active">
-        <img src="links/MA/beeld/2.jpg" class="slide">
-        <img src="links/MA/beeld/3.jpg" class="slide">
-        <img src="links/MA/beeld/4.jpg" class="slide">
-        <img src="links/MA/beeld/5.jpg" class="slide">
-        <img src="links/MA/beeld/6.jpg" class="slide">
-        <img src="links/MA/beeld/7.jpg" class="slide">
-        <img src="links/MA/beeld/8.jpg" class="slide">
-        <img src="links/MA/beeld/9.jpg" class="slide">
-        <img src="links/MA/beeld/10.jpg" class="slide">
-        <img src="links/MA/beeld/11.jpg" class="slide">
-        <img src="links/MA/beeld/12.jpg" class="slide">
-        <img src="links/MA/beeld/13.jpg" class="slide">
-        <img src="links/MA/beeld/14.jpg" class="slide">
-        <img src="links/MA/beeld/15.jpg" class="slide">
-        <img src="links/MA/beeld/16.jpg" class="slide">
-        <img src="links/MA/beeld/17.jpg" class="slide">
-        <img src="links/MA/beeld/18.jpg" class="slide">
-        <img src="links/MA/beeld/19.jpg" class="slide">
-        <img src="links/MA/beeld/20.jpg" class="slide">
-        <img src="links/MA/beeld/21.jpg" class="slide">
-      </div>
-    </div>
-  </div>
   </div>
   
-  <footer class="info-footer">&copy; <span id="info-year"></span> Monoprint Manual - Franco Soolsma</footer>
+  <footer class="info-footer"><span>Monoprint Manual - Franco Soolsma <span id="info-year"></span></span></footer>
+
+  <div id="lightbox" class="lightbox-overlay">
+    <img class="lightbox-content" id="lightbox-img">
+  </div>
 
   <script src="https://www.youtube.com/iframe_api"></script>
   <script>
+    // --- Forceer scroll naar boven bij refresh (meteen uitvoeren) ---
+    // Dit voorkomt dat de browser de scrollpositie onthoudt en de animatie afkapt
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+    window.scrollTo(0, 0);
+    window.onbeforeunload = function () {
+      window.scrollTo(0, 0);
+    };
+
     // Jaartal in footer
     document.getElementById('info-year').textContent = new Date().getFullYear();
 
@@ -678,6 +640,10 @@
     let targetVibrationIntensity = 1;
     let isHoveringHeader = false;
 
+    // Project teksten definities
+    const textProject1 = "<span style=\"font-size: 16px; display: block; margin-bottom: 25px;\">Monoprint Manual To...</span><span style=\"display: block; margin-bottom: 25px;\">Hoe kom je in aanraking met analoge grafische technieken wanneer je hier nooit aan bent geïntroduceerd? Bij welke werkplaatsen kun jij makend terecht na het afstuderen aan de kunstacademie?</span>Tijdens dit project heb ik geprobeerd de analoge techniek ‘Monoprint’ toegankelijk te maken voor verschillende groepen mensen. Bewust maken hoe je zonder ervaring, kunstacademie, werkplaats of budget toch een communicatiemiddel en ontwerp kan creëren in een korte tijd. Een techniek die zich leent om anoniem te blijven, provoceert maar ook reageert op de handelingen van de maker.";
+    const textProject2 = "<span style=\"font-size: 16px; display: block; margin-bottom: 25px;\">Media College Amsterdam</span><span style=\"display: block; margin-bottom: 25px;\">In samenwerking met mijn voormalig mentor van het Media College Amsterdam (Media Vormgeving) heb ik mijn workshop mogen geven tijdens een keuzedeel.</span>Studenten van verschillende opleidingen volgen dit keuzedeel waar zij elke week aan een andere techniek worden geïntroduceerd. Het thema van de les stond in teken van protest, dit kwam goed overeen met mijn individuele lesbrief waaruit een fijne samenwerking ontstond.";
+
     // Hover detectie voor de header content (Titel + Subtitel)
     headerContent.addEventListener('mouseenter', () => { isHoveringHeader = true; });
     headerContent.addEventListener('mouseleave', () => { isHoveringHeader = false; });
@@ -687,6 +653,13 @@
       if (body.classList.contains('index-mode')) {
         // Ga naar Manual Mode
         body.classList.remove('index-mode');
+        
+        // Scroll zodat de onderkant van het tekstkader precies de onderkant van het venster raakt (ankerpunt)
+        // Aangepast naar 'center' op de waslijn zodat de werken niet buiten beeld vallen
+        setTimeout(() => {
+          document.querySelector('.clothesline-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 600); // Iets langer wachten op de header animatie voor correcte positie
+
         // Stop video (optioneel, of laat hem ready staan)
       } else {
         // Ga terug naar Index Mode
@@ -742,25 +715,11 @@
     const progressContainer = document.getElementById('progressContainer');
     const volumeSlider = document.getElementById('volumeSlider');
     const descriptionText = document.getElementById('descriptionText');
-    const timelineIconsContainer = document.getElementById('timelineIcons');
 
     let player;
     let playerReady = false;
     let timeUpdater; // Houdt de setInterval bij voor de tijdlijn
     const YOUTUBE_VIDEO_ID = 'utmwsYK2gxA'; // <-- VERVANG DIT met de ID van je YouTube video
-
-    const chapters = [
-      { time: 0, icon: 'snijwaren.png' },
-      { time: 12, icon: 'papier.png' },
-      { time: 144, icon: 'papier.png' },
-      { time: 175, icon: 'snijplank.png' },
-      { time: 185, icon: 'inkt.png', visualTime: 183 },
-      { time: 188, icon: 'spatel.png', visualTime: 191 },
-      { time: 192, icon: 'roller.png', visualTime: 199 },
-      { time: 207, icon: 'krant.png' },
-      { time: 217, icon: 'deegroller.png' },
-      { time: 295, icon: 'priem.png' }
-    ];
 
     let hoveredElement = null;
 
@@ -768,186 +727,95 @@
     const iconButtons = document.querySelectorAll('.icon-btn');
     const iconStates = new Map();
     iconButtons.forEach(btn => iconStates.set(btn, { current: 0 }));
+    
+    // Variabelen voor de automatische cyclus
+    let toolCycleInterval;
+    let currentToolIndex = 0;
 
     // Placeholder teksten per icoon
     const info = {
-      'snijwaren': 'Om je sjablonen te maken heb je gereedschap nodig, met snijgerei en een lijmstift kom je al een heel eind!',
-      'papier': 'De vormen/sjablonen bestaan uit papier, het is aan te raden om een hoog glansend papier te gebruiken zoals fotopapier. Dit papier heeft een matte en een glansende zijde. Op de matte zijde kun je eventueel een ontwerp schetsen, aangezien we in spiegelbeeld werken staat je beeld dan direct goed op het drukvel. Op de glansende zeide van het papier breng je de inkt aan, door deze coat absorbeert het papier minder inkt en kun je efficiënter te werk gaan. Ook kun je texturen afdrukken zoals: behang, mandarijnnetje, bubbelplastic, karton, etc.',
-      'krant': 'Restpapier zoals oude kranten werken goed om je afdrukken te beschermen van smet! (En houd je werkplek schoon)',
-      'inkt': 'lino ink for block printing ESSDEE. Deze inkt is op waterbasis, gemakkelijk om je gereedschap en materialen schoon te krijgen. Een nadeel is dat de inkt snel droog is, dus per sjabloon inkt aanbrengen!',
-      'spatel': 'Elke spatel voldoet om de inkt te verspreiden over je inktplaat/inkttafel.',
-      'snijplank': 'Een snijplank van plastic/rubber materiaal leent zich goed als huishoudelijke inkttafel! (Daarna geen voedsel meer op snijden)',
-      'roller': 'ESSDEE verkoopt naast hun inkt ook mooie inktrollers waarmee je de sjablonen kan in inkten. (De rollers kun je onderhouden met wat natuurlijke olie, zo gaat het rubber langer mee)',
-      'deegroller': 'Heb je geen toegang tot een pers? Gebruik dan gewoon een deegroller om een afdruk te maken!',
-      'priem': 'Een prikpen, spelt of een priem dient zich om de plakkerige sjablonen van je drukvel af te krijgen.',
-      'schoonmaakspullen': 'Dankzij dat de inkt op waterbasis is, zijn de gereedschappen gemakkelijk schoon te krijgen met water en afwasmiddel. Afdrogen met een microvezeldoek'
+      'snijwaren': { title: 'Gereedschap', text: 'Om je sjablonen te maken heb je gereedschap nodig, met snijgerei en een lijmstift kom je al een heel eind!' },
+      'papier': { title: 'Papier', text: 'De vormen/sjablonen bestaan uit papier, het is aan te raden om een hoog glansend papier te gebruiken zoals fotopapier. Dit papier heeft een matte en een glansende zijde. Op de matte zijde kun je eventueel een ontwerp schetsen, aangezien we in spiegelbeeld werken staat je beeld dan direct goed op het drukvel. Op de glansende zeide van het papier breng je de inkt aan, door deze coat absorbeert het papier minder inkt en kun je efficiënter te werk gaan. Ook kun je texturen afdrukken zoals: behang, mandarijnnetje, bubbelplastic, karton, etc.' },
+      'krant': { title: 'Kranten', text: 'Restpapier zoals oude kranten werken goed om je afdrukken te beschermen van smet! (En houd je werkplek schoon)' },
+      'inkt': { title: 'Inkt', text: 'lino ink for block printing ESSDEE. Deze inkt is op waterbasis, gemakkelijk om je gereedschap en materialen schoon te krijgen. Een nadeel is dat de inkt snel droog is, dus per sjabloon inkt aanbrengen!' },
+      'spatel': { title: 'Spatel', text: 'Elke spatel voldoet om de inkt te verspreiden over je inktplaat/inkttafel.' },
+      'snijplank': { title: 'Inktplaat', text: 'Een snijplank van plastic/rubber materiaal leent zich goed als huishoudelijke inkttafel! (Daarna geen voedsel meer op snijden)' },
+      'roller': { title: 'Inktroller', text: 'ESSDEE verkoopt naast hun inkt ook mooie inktrollers waarmee je de sjablonen kan in inkten. (De rollers kun je onderhouden met wat natuurlijke olie, zo gaat het rubber langer mee)' },
+      'deegroller': { title: 'Deegroller', text: 'Heb je geen toegang tot een pers? Gebruik dan gewoon een deegroller om een afdruk te maken!' },
+      'priem': { title: 'Prikpen', text: 'Een prikpen, spelt of een priem dient zich om de plakkerige sjablonen van je drukvel af te krijgen.' },
+      'schoonmaakspullen': { title: 'Schoonmaken', text: 'Dankzij dat de inkt op waterbasis is, zijn de gereedschappen gemakkelijk schoon te krijgen met water en afwasmiddel. Afdrogen met een microvezeldoek' }
     };
 
     // Helper functie voor de animatie van de tooltip
     let animTimeout;
-    function updateDescription(text) {
+    function updateDescription(data, activeBtn = null) {
       if (animTimeout) clearTimeout(animTimeout);
-
-      // Als de box nog dicht is, open hem met de standaard CSS animatie
-      if (!descriptionText.classList.contains('active')) {
-        descriptionText.textContent = text;
-        requestAnimationFrame(() => descriptionText.classList.add('active'));
-        return;
+      
+      descriptionText.innerHTML = `<span class="tooltip-title">${data.title}</span>${data.text}`;
+      
+      // Update actieve status van iconen (voor vergroting)
+      iconButtons.forEach(btn => btn.classList.remove('active'));
+      if (activeBtn) {
+        activeBtn.classList.add('active');
       }
+    }
 
-      // Box is al open: 'morph' naar de nieuwe afmetingen
-      const startHeight = descriptionText.offsetHeight;
+    // Functie om naar het volgende gereedschap te gaan
+    function showNextTool() {
+      // Pak het volgende icoon
+      const btn = iconButtons[currentToolIndex];
+      const tool = btn.alt;
       
-      // 1. Zet de hoogte vast op de huidige pixels
-      descriptionText.style.height = startHeight + 'px';
-      descriptionText.style.maxHeight = 'none'; // Voorkom dat max-height het meten beïnvloedt
+      if (info[tool]) {
+        updateDescription(info[tool], btn);
+      }
       
-      // 2. Verander de inhoud
-      descriptionText.textContent = text;
-      
-      // 3. Meet de nieuwe hoogte
-      descriptionText.style.height = 'auto';
-      const newHeight = descriptionText.offsetHeight;
-      
-      // 4. Zet terug naar start en forceer reflow voor de transitie
-      descriptionText.style.height = startHeight + 'px';
-      void descriptionText.offsetWidth; 
-      
-      // 5. Animeer naar nieuwe hoogte
-      descriptionText.style.height = newHeight + 'px';
-      
-      // 6. Cleanup na animatie (0.6s matcht de CSS transition)
-      animTimeout = setTimeout(() => {
-        descriptionText.style.height = '';
-        descriptionText.style.maxHeight = '';
-      }, 600);
+      // Verhoog index voor volgende keer (loop terug naar 0 aan het eind)
+      currentToolIndex = (currentToolIndex + 1) % iconButtons.length;
+    }
+
+    // Start de automatische cyclus
+    function startToolCycle() {
+      // Toon direct de eerste en start daarna de interval
+      if (!toolCycleInterval) {
+        toolCycleInterval = setInterval(showNextTool, 3000); // Elke 3 seconden wisselen
+      }
+    }
+
+    // Stop de cyclus (bij hover)
+    function stopToolCycle() {
+      clearInterval(toolCycleInterval);
+      toolCycleInterval = null;
     }
 
     // Event listeners voor de iconen
     iconButtons.forEach(btn => {
-      btn.addEventListener('mouseenter', () => { hoveredElement = btn; });
-      btn.addEventListener('mouseleave', () => { hoveredElement = null; });
-      
-      btn.addEventListener('click', () => {
+      btn.addEventListener('mouseenter', () => { 
+        stopToolCycle(); // Stop automaat
+        hoveredElement = btn;
+        
+        // Toon tooltip direct bij hover
         const tool = btn.alt;
         if (info[tool]) {
-          updateDescription(info[tool]);
-          
-          // Update actieve status van het icoon
-          iconButtons.forEach(b => b.classList.remove('active-tool'));
-          btn.classList.add('active-tool');
+          updateDescription(info[tool], btn);
         }
+      });
+
+      btn.addEventListener('mouseleave', () => { 
+        hoveredElement = null;
+        
+        // Hervat de cyclus, maar update de index zodat hij verder gaat waar we waren (of bij de volgende)
+        // Zoeken welke index dit was om logisch verder te gaan
+        currentToolIndex = Array.from(iconButtons).indexOf(btn);
+        startToolCycle();
       });
     });
 
-    // Vibratie Loop (met Ease)
-    // Hernoemd naar updateIconVibration om conflict te voorkomen
-    function updateIconVibration() {
-      iconButtons.forEach(btn => {
-        let state = iconStates.get(btn);
-        let target = 0;
+    // Start de cyclus initieel
+    showNextTool(); // Direct eerste tonen
+    startToolCycle();
 
-        if (btn === hoveredElement) {
-          target = btn.classList.contains('active-tool') ? 0.8 : 2.0;
-        } else if (btn.classList.contains('active-tool')) {
-          target = 0.8;
-        }
-
-        // Individuele ease-out berekening
-        state.current += (target - state.current) * 0.02;
-
-        // Pas variabelen direct toe op het specifieke icoon
-        btn.style.setProperty('--i-x', state.current * 1.0);
-        btn.style.setProperty('--i-y', state.current * 0.8);
-        btn.style.setProperty('--i-r', state.current * 0.2);
-      });
-
-      requestAnimationFrame(updateIconVibration);
-    }
-    requestAnimationFrame(updateIconVibration);
-
-    // --- Slideshow Script voor Info Pagina ---
-    // Selecteer alle containers en start voor elk een eigen timer
-    document.querySelectorAll('.slideshow-container').forEach(container => {
-      const slides = Array.from(container.querySelectorAll('.slide'));
-      if (slides.length === 0) return;
-
-      let currentIndex = 0;
-      let interval;
-      let pressStartTime = 0;
-
-      // Initialisatie: Zet alles goed
-      slides.forEach((slide, index) => {
-        slide.classList.remove('active', 'exit');
-        if (index === 0) {
-          slide.classList.add('active');
-        } else {
-          // Zorg dat de rest rechts staat
-          slide.style.transform = 'translateX(100%)';
-        }
-      });
-
-      const nextSlide = () => {
-        const current = slides[currentIndex];
-        currentIndex = (currentIndex + 1) % slides.length;
-        const next = slides[currentIndex];
-
-        // 1. Huidige slide schuift naar links weg
-        current.classList.remove('active');
-        current.classList.add('exit');
-
-        // 2. Volgende slide (die rechts stond) schuift naar binnen
-        next.classList.remove('exit'); // Voor de zekerheid
-        next.classList.remove('no-transition');
-        next.style.transform = ''; // Zorg dat er geen oude inline styles in de weg zitten
-
-        // Forceer een 'reflow' zodat de browser snapt dat hij moet animeren van 100% naar 0%
-        void next.offsetWidth; 
-        next.classList.add('active');
-
-        // 3. De slide die net naar links ('exit') is gegaan, moet stiekem weer naar rechts
-        // We wachten tot de animatie (0.4s) voorbij is
-        setTimeout(() => {
-          if (current.classList.contains('exit')) {
-            current.classList.add('no-transition'); // Geen animatie
-            current.classList.remove('exit');
-            current.style.transform = ''; // Laat de CSS (.slide) hem weer rechts zetten
-          }
-        }, 400); // Gelijk aan CSS transition tijd
-      };
-
-      const startTimer = () => {
-        if (interval) clearInterval(interval);
-        interval = setInterval(nextSlide, 3000);
-      };
-
-      const stopTimer = () => {
-        if (interval) clearInterval(interval);
-      };
-
-      // Start automatisch
-      startTimer();
-
-      // --- Instagram-style Interactie ---
-      // Muis/Touch in: Pauzeer
-      const handleStart = () => { stopTimer(); pressStartTime = Date.now(); };
-      // Muis/Touch uit: Hervat (en check of het een klik was)
-      const handleEnd = () => {
-        startTimer();
-        const duration = Date.now() - pressStartTime;
-        // Als de klik korter was dan 250ms, zien we het als een 'tap' -> volgende slide
-        if (duration < 250) {
-          nextSlide();
-        }
-      };
-
-      container.addEventListener('mousedown', handleStart);
-      container.addEventListener('touchstart', handleStart, {passive: true});
-      
-      container.addEventListener('mouseup', handleEnd);
-      container.addEventListener('mouseleave', handleEnd); // Als je de muis weghalt tijdens klikken
-      container.addEventListener('touchend', handleEnd);
-    });
+    // Vibratie Loop verwijderd - iconen zijn nu statisch
 
     // --- YouTube Player API Setup ---
 
@@ -982,33 +850,6 @@
       event.target.playVideo();  // start direct
       volumeSlider.value = 0; // Synchroniseer de volume slider
 
-      // Plaats de icoontjes op de tijdlijn (vervangt 'loadedmetadata' event)
-      const duration = player.getDuration();
-      if (!duration) return;
-
-      chapters.forEach(chapter => {
-        const positionTime = chapter.visualTime !== undefined ? chapter.visualTime : chapter.time;
-        const percent = (positionTime / duration) * 100;
-        if (percent >= 0 && percent <= 100) {
-          const iconEl = document.createElement('div');
-          iconEl.className = 'timeline-icon';
-          iconEl.style.left = `${percent}%`;
-          iconEl.style.backgroundImage = `url(links/icons_png/${chapter.icon})`;
-          iconEl.addEventListener('click', () => {
-            player.seekTo(chapter.time, true); // Gebruik de YouTube API
-            const tool = chapter.icon.replace('.png', '');
-            if (info[tool]) {
-              updateDescription(info[tool]);
-            }
-            const topIcon = Array.from(iconButtons).find(btn => btn.alt === tool);
-            if (topIcon) {
-              iconButtons.forEach(b => b.classList.remove('active-tool'));
-              topIcon.classList.add('active-tool');
-            }
-          });
-          timelineIconsContainer.appendChild(iconEl);
-        }
-      });
     }
 
     // De API roept deze functie aan als de status van de speler verandert (play, pause, etc.)
@@ -1018,6 +859,15 @@
         // Start onze eigen 'timeupdate' loop
         clearInterval(timeUpdater);
         timeUpdater = setInterval(updatePlayerTime, 250);
+
+        // Scroll de pagina zodat de video bovenaan staat en het logo (header) wegvalt
+        // Dit gebeurt alleen als we niet meer in de intro-modus zijn
+        if (!document.body.classList.contains('index-mode')) {
+          document.querySelector('.main-container').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
       } else {
         playBtn.innerHTML = playIcon;
         // Stop de loop als de video pauzeert of stopt
@@ -1110,10 +960,305 @@
 
     // Verander cursor bij elke muisklik (mousedown voelt directer dan click)
     window.addEventListener('mousedown', randomizeCursor);
+    
+    // Initialiseer de cursor direct bij het laden (dit lost het probleem op GitHub Pages op)
+    randomizeCursor();
 
-    // URL visueel opschonen (verwijdert .html uit de adresbalk)
-    // Dit werkt nadat je dit bestand hernoemd hebt naar index.html
-    if (window.history.replaceState) {
+    // --- Waslijn & Lightbox Logic ---
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const clotheslineWrapper = document.getElementById('clotheslineSection');
+    let activeSourceItem = null; // Houdt bij welk item aan de waslijn geopend is
+    
+    // Array voor physics objecten (houdt snelheid en hoek bij per item)
+    const physicsItems = [];
+
+    // --- Genereer MA sectie (1 t/m 21) ---
+    for (let i = 1; i <= 21; i++) {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'hanging-item';
+      if (i === 1) itemDiv.id = 'ma-project-start'; // Markeer het eerste item als startpunt
+      const img = document.createElement('img');
+      img.src = `links/MA/beeld/${i}.jpg`;
+      img.alt = `MA Work ${i}`;
+      itemDiv.appendChild(img);
+      clotheslineWrapper.appendChild(itemDiv);
+    }
+
+    // --- Pas logica toe op ALLE items (bestaande + nieuwe) ---
+    document.querySelectorAll('.hanging-item').forEach(item => {
+      // 1. Pas een willekeurige, lichte rotatie toe
+      const rotation = (Math.random() * 8) - 4; // Geeft een waarde tussen -4 en 4
+      item.style.setProperty('--rotation', `${rotation}deg`);
+      
+      // Maak physics object aan
+      const physObj = {
+        element: item,
+        angle: rotation,
+        restAngle: rotation,
+        velocity: 0,
+        // Randomize physics per item voor asynchroon 'uitbungelen'
+        k: 0.001 + Math.random() * 0.002, // Willekeurige stijfheid (heel laag = traag)
+        damping: 0.96 + Math.random() * 0.03 // Willekeurige weerstand (dicht bij 1 = lang doorzwaaien)
+      };
+      physicsItems.push(physObj);
+
+      // Muis interactie: Physics reageren op de muisbeweging (duwen)
+      item.addEventListener('mousemove', (e) => {
+        // Geef een zetje gebaseerd op de horizontale snelheid van de muis
+        // Factor 0.002 maakt het extreem licht (veertje)
+        physObj.velocity += e.movementX * 0.002; 
+      });
+
+      // 2. Click listener voor openen met animatie
+      item.addEventListener('click', () => {
+        activeSourceItem = item;
+        const imgEl = item.querySelector('img');
+        const imgSrc = imgEl.src;
+        
+        // 1. Zet afbeelding klaar in de lightbox (onzichtbaar nog)
+        lightboxImg.src = imgSrc;
+        
+        // 2. Bereken direct de posities voor de FLIP animatie
+        // We moeten de lightbox even tonen (visibility) om de afmetingen te meten, maar opacity 0 houden
+        lightbox.style.visibility = 'visible';
+        lightbox.style.display = 'flex'; // Zeker weten dat hij layout heeft
+        
+        const startRect = imgEl.getBoundingClientRect();
+        const endRect = lightboxImg.getBoundingClientRect();
+        
+        // Reset lightbox weer even voor de animatie start
+        lightbox.style.visibility = ''; 
+        lightbox.style.display = '';
+
+        // 3. Bereken transformaties
+        const scaleX = startRect.width / endRect.width;
+        const scaleY = startRect.height / endRect.height;
+        const translateX = startRect.left - endRect.left + (startRect.width - endRect.width) / 2;
+        const translateY = startRect.top - endRect.top + (startRect.height - endRect.height) / 2;
+        // Gebruik de huidige fysieke rotatie voor een naadloze overgang
+        const rotation = physObj.angle;
+
+        // 4. Start de animatie op de grote afbeelding
+        // We zetten hem EERST op de startpositie (dus precies op de miniatuur)
+        lightboxImg.animate([
+          {
+            transform: `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY}) rotate(${rotation}deg)`
+          },
+          {
+            transform: 'translate(0, 0) scale(1) rotate(0deg)'
+          }
+        ], {
+          duration: 500,
+          easing: 'cubic-bezier(0.2, 0, 0.2, 1)',
+          fill: 'forwards'
+        });
+
+        // 5. Toon de lightbox en verberg direct het origineel
+        // Hierdoor lijkt het alsof het origineel "loskomt"
+        lightbox.classList.add('active');
+        item.classList.add('is-open');
+      });
+    });
+
+    // --- Physics Engine Loop ---
+    function updatePhysics() {
+      physicsItems.forEach(p => {
+        // 1. Veer-kracht: Gebruik de unieke k waarde van dit item
+        const force = (p.restAngle - p.angle) * p.k;
+        
+        // 2. Pas kracht toe op snelheid
+        p.velocity += force;
+        
+        // 3. Wrijving (Damping): Gebruik de unieke damping waarde
+        p.velocity *= p.damping; 
+        
+        // 4. Update positie
+        p.angle += p.velocity;
+        
+        // 5. Voorkom looping: Beperk de maximale hoek (max 30 graden uitzwaai)
+        const maxDeviation = 10;
+        if (p.angle > p.restAngle + maxDeviation) {
+          p.angle = p.restAngle + maxDeviation;
+          p.velocity *= -0.2; // Zachte 'bounce' terug als hij de limiet raakt
+        } else if (p.angle < p.restAngle - maxDeviation) {
+          p.angle = p.restAngle - maxDeviation;
+          p.velocity *= -0.2;
+        }
+        
+        p.element.style.transform = `rotate(${p.angle}deg)`;
+      });
+      requestAnimationFrame(updatePhysics);
+    }
+    updatePhysics(); // Start de simulatie
+
+    // Functie om de lightbox te sluiten met animatie terug naar waslijn
+    function closeLightbox() {
+      if (!activeSourceItem) {
+        lightbox.classList.remove('active');
+        return;
+      }
+
+      const imgEl = activeSourceItem.querySelector('img');
+      const startRect = lightboxImg.getBoundingClientRect();
+      const endRect = imgEl.getBoundingClientRect();
+
+      const scaleX = endRect.width / startRect.width;
+      const scaleY = endRect.height / startRect.height;
+      const translateX = endRect.left - startRect.left + (endRect.width - startRect.width) / 2;
+      const translateY = endRect.top - startRect.top + (endRect.height - startRect.height) / 2;
+      
+      // Haal de actuele rotatie op uit de physics engine
+      const physObj = physicsItems.find(p => p.element === activeSourceItem);
+      const rotation = physObj ? physObj.angle : 0;
+
+      // Animeren terug naar de waslijn
+      const animation = lightboxImg.animate([
+        { transform: 'translate(0, 0) scale(1) rotate(0deg)' },
+        { transform: `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY}) rotate(${rotation}deg)` }
+      ], {
+        duration: 300,
+        easing: 'cubic-bezier(0.4, 0, 1, 1)', // Ease in (sneller op het einde)
+        fill: 'forwards'
+      });
+
+      animation.onfinish = () => {
+      lightbox.classList.remove('active');
+        activeSourceItem.classList.remove('is-open');
+        activeSourceItem = null;
+        // Reset de transform op lightbox img voor volgende keer (hoewel animate fill forwards dit overschrijft, resetten is netjes)
+        lightboxImg.style.transform = ''; 
+      };
+    }
+
+    // Sluit de lightbox bij klik op overlay OF afbeelding
+    lightbox.addEventListener('click', closeLightbox);
+    
+    // Omdat de afbeelding IN de overlay zit, zou een klik daarop ook bubblen naar de overlay.
+    // Maar voor de zekerheid is de click op de overlay (parent) voldoende.
+    // Als je specifiek gedrag wilt (bijv. klik op afbeelding doet niks), moet je e.stopPropagation() gebruiken.
+    // Maar je vroeg "gwn on klik weer kunnen verkleinen", dus overal klikken sluit hem nu.
+
+    // --- Auto-Scroll Waslijn ---
+    const scrollContainer = document.getElementById('clotheslineSection');
+    let scrollSpeed = 0;
+    
+    // Alleen luisteren naar muisbewegingen OP de waslijn sectie
+    scrollContainer.addEventListener('mousemove', (e) => {
+      const threshold = 150; // Aantal pixels vanaf de rand waar scrollen begint
+      const maxSpeed = 8; // Maximale scrollsnelheid
+      
+      if (e.clientX < threshold) {
+        scrollSpeed = -((threshold - e.clientX) / threshold) * maxSpeed;
+      } else if (e.clientX > window.innerWidth - threshold) {
+        scrollSpeed = ((e.clientX - (window.innerWidth - threshold)) / threshold) * maxSpeed;
+      } else {
+        scrollSpeed = 0;
+      }
+    });
+
+    // Stop direct met scrollen als de muis de sectie verlaat
+    scrollContainer.addEventListener('mouseleave', () => {
+      scrollSpeed = 0;
+    });
+
+    // Detecteer wanneer scrollen stopt voor de wiggle animatie
+    let isScrolling;
+    let lastScrollLeft = scrollContainer.scrollLeft;
+    let currentMaxSpeed = 0;
+    const projectLabel = document.getElementById('projectLabel');
+    const maStartItem = document.getElementById('ma-project-start');
+    let currentProjectState = 1; // Houdt bij welk project er nu staat (1 of 2)
+
+    scrollContainer.addEventListener('scroll', () => {
+      // Bereken huidige snelheid (pixels verschil sinds vorige frame)
+      const currentLeft = scrollContainer.scrollLeft;
+      const speed = Math.abs(currentLeft - lastScrollLeft);
+      const delta = currentLeft - lastScrollLeft; // Verschil in positie (+ of -)
+      lastScrollLeft = currentLeft;
+
+      // --- Update Project Tekst ---
+      // Check positie van het eerste MA-werk t.o.v. het scroll-venster
+      const containerRect = scrollContainer.getBoundingClientRect();
+      const triggerRect = maStartItem.getBoundingClientRect();
+      const centerPoint = containerRect.left + containerRect.width / 2;
+
+      // Als het eerste MA-werk het midden passeert, zijn we bij project 2
+      if (triggerRect.left < centerPoint && currentProjectState !== 2) {
+        currentProjectState = 2;
+        typeEffect(projectLabel, textProject2);
+      } else if (triggerRect.left >= centerPoint && currentProjectState !== 1) {
+        currentProjectState = 1;
+        typeEffect(projectLabel, textProject1);
+      }
+      
+      // Onthoud de hoogste snelheid van deze scroll-actie
+      if (speed > currentMaxSpeed) currentMaxSpeed = speed;
+
+      // Directe 'wind' / inertie tijdens het scrollen
+      // Als we naar rechts scrollen (delta > 0), zwaaien items naar links (velocity omlaag)
+      physicsItems.forEach(p => {
+        p.velocity -= delta * 0.003; // Heel subtiele kracht per pixel
+      });
+    });
+
+    // --- Typewriter Effect Functie (Fallout Style) ---
+    // Deze functie bouwt HTML recursief op zodat tags direct geplaatst worden
+    // en tekst letter voor letter verschijnt.
+    function typeEffect(element, html) {
+       // 1. Maak tijdelijke container om HTML structuur te lezen
+       const tempDiv = document.createElement('div');
+       tempDiv.innerHTML = html;
+       
+       element.innerHTML = ''; // Maak doel leeg
+       
+       // Queue van acties (letters toevoegen)
+       const queue = [];
+       
+       function traverse(node, targetParent) {
+         if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent;
+            for (let i = 0; i < text.length; i++) {
+               queue.push(() => {
+                  targetParent.appendChild(document.createTextNode(text[i]));
+               });
+            }
+         } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const clone = node.cloneNode(false); // Clone element zonder kinderen
+            queue.push(() => {
+               targetParent.appendChild(clone);
+            });
+            // Ga recursief door de kinderen, maar voeg ze toe aan de clone
+            node.childNodes.forEach(child => traverse(child, clone));
+         }
+       }
+       
+       Array.from(tempDiv.childNodes).forEach(child => traverse(child, element));
+       
+       // Start animatie loop
+       if (window.typeInterval) clearInterval(window.typeInterval);
+       
+       let i = 0;
+       window.typeInterval = setInterval(() => {
+          if (i >= queue.length) {
+             clearInterval(window.typeInterval);
+             return;
+          }
+          queue[i](); // Voer actie uit (letter of tag plaatsen)
+          i++;
+       }, 5); // Snelheid in ms (lager = sneller typen)
+    }
+
+    function autoScrollLoop() {
+      if (scrollSpeed !== 0) {
+        scrollContainer.scrollLeft += scrollSpeed;
+      }
+      requestAnimationFrame(autoScrollLoop);
+    }
+    autoScrollLoop();
+
+    // --- URL Opschonen (index.html weghalen) ---
+    if (window.history.replaceState && window.location.pathname.endsWith('index.html')) {
       const path = window.location.pathname.replace(/\/index\.html$/, '/');
       window.history.replaceState(null, '', path);
     }
