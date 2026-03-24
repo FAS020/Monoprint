@@ -629,7 +629,6 @@
     <img class="lightbox-content" id="lightbox-img">
   </div>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     // --- Forceer scroll naar boven bij refresh (meteen uitvoeren) ---
     // Dit voorkomt dat de browser de scrollpositie onthoudt en de animatie afkapt
@@ -837,6 +836,12 @@
     // Vibratie Loop verwijderd - iconen zijn nu statisch
 
     // --- YouTube Player API Setup ---
+
+    // Laad de YouTube API asynchroon (dit zorgt ervoor dat de functie onYouTubeIframeAPIReady op tijd bekend is)
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
     // Deze functie wordt automatisch aangeroepen door de YouTube API script
     function onYouTubeIframeAPIReady() {
