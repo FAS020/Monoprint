@@ -859,15 +859,6 @@
         // Start onze eigen 'timeupdate' loop
         clearInterval(timeUpdater);
         timeUpdater = setInterval(updatePlayerTime, 250);
-
-        // Scroll de pagina zodat de video bovenaan staat en het logo (header) wegvalt
-        // Dit gebeurt alleen als we niet meer in de intro-modus zijn
-        if (!document.body.classList.contains('index-mode')) {
-          document.querySelector('.main-container').scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          });
-        }
       } else {
         playBtn.innerHTML = playIcon;
         // Stop de loop als de video pauzeert of stopt
