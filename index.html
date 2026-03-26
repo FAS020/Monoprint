@@ -6,7 +6,6 @@
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
   <title>Monoprint Manual</title>
-  <link rel="icon" type="image/jpeg" href="links/navi.jpg">
   <style>
     body {
       margin: 0;
@@ -120,6 +119,8 @@
     /* De trillende animatie voor de index elementen */
     .vibrate-target {
       animation: vibration 0.5s linear infinite; /* Snelheid gelijkgetrokken met iconen */
+      will-change: transform;
+      transform: translateZ(0); /* Forceert GPU versnelling op oudere Macs */
     }
 
     @keyframes vibration {
@@ -433,7 +434,7 @@
       position: relative;
       background: #fff;
       padding: 10px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtielere schaduw */
+      border: 1px solid #e0e0e0; /* Border is veel lichter voor de GPU dan box-shadow */
       transform-origin: top center;
       --rotation: 0deg;
       transform: rotate(var(--rotation));
@@ -443,6 +444,10 @@
       z-index: 2; /* Zorg dat de werken BOVEN de lijn (z-index 1) liggen */
       flex-shrink: 0; /* Voorkomt dat items kleiner worden als de lijn vol raakt */
       cursor: pointer;
+    }
+    .hanging-item { 
+      will-change: transform;
+      transform: translateZ(0);
     }
 
     .hanging-items-wrapper .hanging-item:hover {
@@ -548,29 +553,11 @@
       <div class="rope"></div>
       <div class="hanging-items-wrapper" id="clotheslineSection">
         <!-- Thuis Sectie -->
-        <div class="hanging-item">
-          <img src="links/thuis/beeld/1.jpg" alt="Monoprint Work">
-        </div>
-        <div class="hanging-item">
+        <div class="hanging-item" data-active="true">
           <img src="links/thuis/beeld/2.jpg" alt="Monoprint Work">
         </div>
-        <div class="hanging-item">
+        <div class="hanging-item" data-active="true">
           <img src="links/thuis/beeld/3.jpg" alt="Monoprint Work">
-        </div>
-        <div class="hanging-item">
-          <img src="links/thuis/beeld/4.jpg" alt="Monoprint Work">
-        </div>
-        <div class="hanging-item">
-          <img src="links/thuis/beeld/5.jpg" alt="Monoprint Work">
-        </div>
-        <div class="hanging-item">
-          <img src="links/thuis/beeld/6.jpg" alt="Monoprint Work">
-        </div>
-        <div class="hanging-item">
-          <img src="links/thuis/beeld/7.jpg" alt="Monoprint Work">
-        </div>
-        <div class="hanging-item">
-          <img src="links/thuis/beeld/8.jpg" alt="Monoprint Work">
         </div>
         <!-- MA Sectie (wordt aangevuld door JS) -->
       </div>
@@ -586,7 +573,7 @@
       <div id="click-overlay"></div>
       <div class="custom-controls">
         <button class="play-pause" id="playBtn">
-          <svg id="playIcon" viewBox="0 0 24 24" fill="white"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          <svg id="playIcon" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
         </button>
         
         <div class="progress-container" id="progressContainer">
@@ -629,6 +616,7 @@
     <img class="lightbox-content" id="lightbox-img">
   </div>
 
+  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     // --- Forceer scroll naar boven bij refresh (meteen uitvoeren) ---
     // Dit voorkomt dat de browser de scrollpositie onthoudt en de animatie afkapt
@@ -651,12 +639,21 @@
     // Woordenlijst voor index
     const woorden = ["Exist.jpg", "Fight.jpg", "Protest.jpg", "Revolt.jpg", "Resist.jpg", "Provocate.jpg", "Inform.jpg", "Unite.jpg", "Love.jpg", "Create.jpg", "Defy.jpg", "Dream.jpg", "Expose.jpg", "Rebel.jpg"];
     let wordIndex = 0;
-    let lastSwitchTime = 0;
     
     // Variabelen voor vibratie intensiteit
     let vibrationIntensity = 1;
     let targetVibrationIntensity = 1;
     let isHoveringHeader = false;
+    let vibrationAnimationId = null; // Voor het stoppen van de loop
+    let physicsAnimationId = null;   // Voor het stoppen van de physics loop
+
+    // Functie voor het wisselen van woorden (Subtitle) - draait onafhankelijk van de zware vibratie-loop
+    function cycleSubtitles() {
+      wordIndex = (wordIndex + 1) % woorden.length;
+      subtitleElement.src = "links/Woorden/" + woorden[wordIndex];
+      const nextDelay = isHoveringHeader ? 100 : 500;
+      setTimeout(cycleSubtitles, nextDelay);
+    }
 
     // Project teksten definities
     const textProject1 = "<span style=\"font-size: 16px; display: block; margin-bottom: 25px;\">Monoprint Manual To...</span><span style=\"display: block; margin-bottom: 25px;\">Hoe kom je in aanraking met analoge grafische technieken wanneer je hier nooit aan bent geïntroduceerd? Bij welke werkplaatsen kun jij makend terecht na het afstuderen aan de kunstacademie?</span>Tijdens dit project heb ik geprobeerd de analoge techniek ‘Monoprint’ toegankelijk te maken voor verschillende groepen mensen. Bewust maken hoe je zonder ervaring, kunstacademie, werkplaats of budget toch een communicatiemiddel en ontwerp kan creëren in een korte tijd. Een techniek die zich leent om anoniem te blijven, provoceert maar ook reageert op de handelingen van de maker.";
@@ -664,10 +661,14 @@
 
     // Hover detectie voor de header content (Titel + Subtitel)
     headerContent.addEventListener('mouseenter', () => { isHoveringHeader = true; });
-    headerContent.addEventListener('mouseleave', () => { isHoveringHeader = false; });
+    headerContent.addEventListener('mouseleave', () => { 
+      isHoveringHeader = false; 
+      startVibrationLoop(); // Zorg dat hij weer gaat 'afkoelen'
+    });
 
     // Klik op header wisselt tussen modes
     headerContent.addEventListener('click', () => {
+      startVibrationLoop(); // Activeer loop voor transitie
       if (body.classList.contains('index-mode')) {
         // Ga naar Manual Mode
         body.classList.remove('index-mode');
@@ -689,16 +690,6 @@
 
     // Vibratie Loop voor de Index Header
     function updateIndexVibration(timestamp) {
-      // Woorden wisselen (blijft nu altijd doorgaan)
-      // Als we hoveren gaat het sneller (100ms), anders rustig (500ms)
-      const speed = isHoveringHeader ? 100 : 500;
-      
-      if (timestamp - lastSwitchTime >= speed) {
-          wordIndex = (wordIndex + 1) % woorden.length;
-          subtitleElement.src = "links/Woorden/" + woorden[wordIndex];
-          lastSwitchTime = timestamp;
-      }
-
       // Bepaal doel intensiteit
       if (isHoveringHeader) {
         targetVibrationIntensity = 3.0; // Versneld/actiever bij hover, maar niet te wild
@@ -712,6 +703,13 @@
       // Smooth transition van intensiteit (Ease logic)
       vibrationIntensity += (targetVibrationIntensity - vibrationIntensity) * 0.05;
 
+      // Optimalisatie: pas als de intensiteit is 'afgekoeld' naar de ruststand (0.3 in manual mode),
+      // stoppen we met de zware DOM-updates om de CPU te sparen.
+      if (!body.classList.contains('index-mode') && !isHoveringHeader && vibrationIntensity < 0.35) {
+        vibrationAnimationId = null; // Markeer als gestopt
+        return; 
+      }
+
       // Zet CSS variabelen op de vibrate-targets
       document.querySelectorAll('.vibrate-target').forEach(el => {
           // Geen random meer, maar stabiele waardes die de keyframe-loop aansturen (net als bij de iconen)
@@ -720,9 +718,16 @@
           el.style.setProperty('--v-r', vibrationIntensity * 0.2);
           el.style.setProperty('--v-s', vibrationIntensity * 0.005);
       });
-      requestAnimationFrame(updateIndexVibration);
+      vibrationAnimationId = requestAnimationFrame(updateIndexVibration);
     }
-    requestAnimationFrame(updateIndexVibration);
+
+    function startVibrationLoop() {
+      if (!vibrationAnimationId) {
+        vibrationAnimationId = requestAnimationFrame(updateIndexVibration);
+      }
+    }
+    startVibrationLoop();
+    cycleSubtitles(); // Start de onafhankelijke subtitle cyclus
 
     // --- Bestaande Scripts ---
     const playBtn = document.getElementById('playBtn');
@@ -837,29 +842,28 @@
 
     // --- YouTube Player API Setup ---
 
-    // Laad de YouTube API asynchroon (dit zorgt ervoor dat de functie onYouTubeIframeAPIReady op tijd bekend is)
-    var tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    var firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
     // Deze functie wordt automatisch aangeroepen door de YouTube API script
     function onYouTubeIframeAPIReady() {
-    player = new YT.Player('youtube-player', {
-    host: 'https://www.youtube-nocookie.com',   // ← DEZE ONTBRAK
-    videoId: YOUTUBE_VIDEO_ID,
-    playerVars: {
-      autoplay: 1,
-      controls: 0,
-      loop: 1,
-      playlist: YOUTUBE_VIDEO_ID,
-      rel: 0,
-      modestbranding: 1,
-      iv_load_policy: 3,
-      playsinline: 1,
-      enablejsapi: 1,
-      origin: window.location.origin
-      },
+      initYoutubePlayer();
+    }
+
+    function initYoutubePlayer() {
+      if (player) return; // Al geïnitialiseerd
+      player = new YT.Player('youtube-player', {
+        host: 'https://www.youtube-nocookie.com',
+        videoId: YOUTUBE_VIDEO_ID,
+        playerVars: {
+          autoplay: 0,
+          controls: 0,
+          loop: 1,
+          playlist: YOUTUBE_VIDEO_ID,
+          rel: 0,
+          modestbranding: 1,
+          iv_load_policy: 3,
+          playsinline: 1,
+          enablejsapi: 1,
+          origin: window.location.origin
+        },
         events: {
           'onReady': onPlayerReady,
           'onStateChange': onPlayerStateChange
@@ -871,9 +875,7 @@
     function onPlayerReady(event) {
       playerReady = true;
       event.target.mute(); // Start gedempt, net als de vorige video
-      event.target.playVideo();  // start direct
       volumeSlider.value = 0; // Synchroniseer de volume slider
-
     }
 
     // De API roept deze functie aan als de status van de speler verandert (play, pause, etc.)
@@ -881,8 +883,17 @@
       if (event.data == YT.PlayerState.PLAYING) {
         playBtn.innerHTML = pauseIcon;
         // Start onze eigen 'timeupdate' loop
-        clearInterval(timeUpdater);
+        if (timeUpdater) clearInterval(timeUpdater);
         timeUpdater = setInterval(updatePlayerTime, 250);
+
+        // Scroll de pagina zodat de video bovenaan staat en het logo (header) wegvalt
+        // Dit gebeurt alleen als we niet meer in de intro-modus zijn
+        if (!document.body.classList.contains('index-mode')) {
+          document.querySelector('.main-container').scrollIntoView({ 
+            behavior: 'smooth', 
+            block: 'start' 
+          });
+        }
       } else {
         playBtn.innerHTML = playIcon;
         // Stop de loop als de video pauzeert of stopt
@@ -989,20 +1000,35 @@
     const physicsItems = [];
 
     // --- Genereer MA sectie (1 t/m 21) ---
+    const fragment = document.createDocumentFragment(); // Sneller toevoegen aan DOM
     for (let i = 1; i <= 21; i++) {
       const itemDiv = document.createElement('div');
       itemDiv.className = 'hanging-item';
       if (i === 1) itemDiv.id = 'ma-project-start'; // Markeer het eerste item als startpunt
       const img = document.createElement('img');
       img.src = `links/MA/beeld/${i}.jpg`;
+      img.loading = "lazy"; // Bespaart RAM op oude systemen
       img.alt = `MA Work ${i}`;
       itemDiv.appendChild(img);
-      clotheslineWrapper.appendChild(itemDiv);
+      fragment.appendChild(itemDiv);
     }
+    clotheslineWrapper.appendChild(fragment);
+
+    // Intersection Observer om physics alleen te draaien voor wat in beeld is
+    const observerOptions = { root: clotheslineWrapper, threshold: 0.1 };
+    const visibilityObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        const physObj = physicsItems.find(p => p.element === entry.target);
+        if (physObj) {
+          physObj.isVisible = entry.isIntersecting;
+          if (entry.isIntersecting) startPhysicsLoop();
+        }
+      });
+    }, observerOptions);
 
     // --- Pas logica toe op ALLE items (bestaande + nieuwe) ---
     document.querySelectorAll('.hanging-item').forEach(item => {
-      // 1. Pas een willekeurige, lichte rotatie toe
+      visibilityObserver.observe(item);
       const rotation = (Math.random() * 8) - 4; // Geeft een waarde tussen -4 en 4
       item.style.setProperty('--rotation', `${rotation}deg`);
       
@@ -1012,17 +1038,18 @@
         angle: rotation,
         restAngle: rotation,
         velocity: 0,
-        // Randomize physics per item voor asynchroon 'uitbungelen'
         k: 0.001 + Math.random() * 0.002, // Willekeurige stijfheid (heel laag = traag)
-        damping: 0.96 + Math.random() * 0.03 // Willekeurige weerstand (dicht bij 1 = lang doorzwaaien)
+        damping: 0.96 + Math.random() * 0.03, // Willekeurige weerstand
+        isMoving: true,
+        isVisible: false
       };
       physicsItems.push(physObj);
 
       // Muis interactie: Physics reageren op de muisbeweging (duwen)
       item.addEventListener('mousemove', (e) => {
-        // Geef een zetje gebaseerd op de horizontale snelheid van de muis
-        // Factor 0.002 maakt het extreem licht (veertje)
-        physObj.velocity += e.movementX * 0.002; 
+        physObj.isMoving = true;
+        physObj.velocity += e.movementX * 0.002;
+        startPhysicsLoop();
       });
 
       // 2. Click listener voor openen met animatie
@@ -1078,35 +1105,50 @@
 
     // --- Physics Engine Loop ---
     function updatePhysics() {
+      let somethingMoved = false;
       physicsItems.forEach(p => {
+        if (!p.isMoving || !p.isVisible) return; // Sla items over die niet bewegen OF buiten beeld zijn
+
         // 1. Veer-kracht: Gebruik de unieke k waarde van dit item
         const force = (p.restAngle - p.angle) * p.k;
-        
-        // 2. Pas kracht toe op snelheid
         p.velocity += force;
-        
-        // 3. Wrijving (Damping): Gebruik de unieke damping waarde
         p.velocity *= p.damping; 
-        
-        // 4. Update positie
         p.angle += p.velocity;
         
-        // 5. Voorkom looping: Beperk de maximale hoek (max 30 graden uitzwaai)
         const maxDeviation = 10;
         if (p.angle > p.restAngle + maxDeviation) {
           p.angle = p.restAngle + maxDeviation;
-          p.velocity *= -0.2; // Zachte 'bounce' terug als hij de limiet raakt
+          p.velocity *= -0.2;
         } else if (p.angle < p.restAngle - maxDeviation) {
           p.angle = p.restAngle - maxDeviation;
           p.velocity *= -0.2;
         }
         
         p.element.style.transform = `rotate(${p.angle}deg)`;
-      });
-      requestAnimationFrame(updatePhysics);
-    }
-    updatePhysics(); // Start de simulatie
 
+        // Slaap-modus: als beweging minimaal is, stop met rekenen voor dit item
+        if (Math.abs(p.velocity) < 0.0001 && Math.abs(p.angle - p.restAngle) < 0.01) {
+          p.isMoving = false;
+          p.angle = p.restAngle;
+          p.element.style.transform = `rotate(${p.angle}deg)`;
+        } else {
+          somethingMoved = true;
+        }
+      });
+
+      if (somethingMoved) {
+        physicsAnimationId = requestAnimationFrame(updatePhysics);
+      } else {
+        physicsAnimationId = null; // Stop de loop volledig
+      }
+    }
+    function startPhysicsLoop() {
+      if (!physicsAnimationId) {
+        physicsAnimationId = requestAnimationFrame(updatePhysics);
+      }
+    }
+    startPhysicsLoop();
+    
     // Functie om de lightbox te sluiten met animatie terug naar waslijn
     function closeLightbox() {
       if (!activeSourceItem) {
@@ -1188,11 +1230,13 @@
     scrollContainer.addEventListener('scroll', () => {
       // Bereken huidige snelheid (pixels verschil sinds vorige frame)
       const currentLeft = scrollContainer.scrollLeft;
-      const speed = Math.abs(currentLeft - lastScrollLeft);
       const delta = currentLeft - lastScrollLeft; // Verschil in positie (+ of -)
       lastScrollLeft = currentLeft;
 
       // --- Update Project Tekst ---
+      // Throttle de check: alleen doen als we een significant stuk scrollen om CPU te sparen
+      if (Math.abs(delta) < 2) return; 
+
       // Check positie van het eerste MA-werk t.o.v. het scroll-venster
       const containerRect = scrollContainer.getBoundingClientRect();
       const triggerRect = maStartItem.getBoundingClientRect();
@@ -1207,15 +1251,15 @@
         typeEffect(projectLabel, textProject1);
       }
       
-      // Onthoud de hoogste snelheid van deze scroll-actie
-      if (speed > currentMaxSpeed) currentMaxSpeed = speed;
-
       // Directe 'wind' / inertie tijdens het scrollen
-      // Als we naar rechts scrollen (delta > 0), zwaaien items naar links (velocity omlaag)
+      // Alleen toepassen op ZICHTBARE items
       physicsItems.forEach(p => {
+        if (!p.isVisible) return;
+        p.isMoving = true;
         p.velocity -= delta * 0.003; // Heel subtiele kracht per pixel
       });
-    });
+      startPhysicsLoop();
+    }, { passive: true }); // Passive zorgt voor soepeler scrollen op oude hardware
 
     // --- Typewriter Effect Functie (Fallout Style) ---
     // Deze functie bouwt HTML recursief op zodat tags direct geplaatst worden
@@ -1261,16 +1305,21 @@
           }
           queue[i](); // Voer actie uit (letter of tag plaatsen)
           i++;
-       }, 5); // Snelheid in ms (lager = sneller typen)
+       }, 25); // Iets langer interval bespaart CPU-cycles
     }
 
     function autoScrollLoop() {
-      if (scrollSpeed !== 0) {
-        scrollContainer.scrollLeft += scrollSpeed;
+      if (scrollSpeed === 0) {
+        window.autoScrollId = null;
+        return;
       }
-      requestAnimationFrame(autoScrollLoop);
+      scrollContainer.scrollLeft += scrollSpeed;
+      window.autoScrollId = requestAnimationFrame(autoScrollLoop);
     }
-    autoScrollLoop();
+    
+    scrollContainer.addEventListener('mouseenter', () => {
+      if (!window.autoScrollId) window.autoScrollId = requestAnimationFrame(autoScrollLoop);
+    });
 
     // --- URL Opschonen (index.html weghalen) ---
     if (window.history.replaceState && window.location.pathname.endsWith('index.html')) {
