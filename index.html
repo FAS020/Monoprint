@@ -423,8 +423,8 @@
 
     .hanging-item {
       position: relative;
-      background: #fff;
-      padding: 10px;
+      background: transparent;
+      padding: 0;
       border: 1px solid #e0e0e0; /* Border is veel lichter voor de GPU dan box-shadow */
       transform-origin: top center;
       --rotation: 0deg;
@@ -485,7 +485,7 @@
     .lightbox-content {
       max-width: 70%; /* Dit bepaalt de maximale breedte (70% van het scherm) */
       max-height: 80vh; /* Dit bepaalt de maximale hoogte (80% van het scherm) */
-      border: 3px solid white;
+      border: 1px solid #e0e0e0;
       box-shadow: 0 0 25px rgba(0,0,0,0.5);
       transform-origin: center center;
       cursor: zoom-out;
@@ -885,14 +885,16 @@
       const videoWrapper = document.querySelector('.video-wrapper');
       const videoObserver = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
-          if (playerReady) {
-            if (entry.isIntersecting) {
-              player.playVideo(); // Start de video als hij in beeld komt
-            } else {
-              player.pauseVideo(); // Pauzeer de video als hij uit beeld gaat
+          if (playerReady) { // Check of YouTube al klaar is
+            if (entry.isIntersecting) { // Check of de video in beeld is
+              player.playVideo(); // Start de video
+              videoObserver.unobserve(videoWrapper); // Stop observeren
+              videoObserver.disconnect(); // Haal de observer helemaal weg
+            } else { // Niet (meer) in beeld?
+              player.pauseVideo(); // Video pauzeren
             }
           }
-        });
+        }); 
       }, { 
         threshold: 0.3 // Start als 30% van de video zichtbaar is
       });
@@ -907,15 +909,6 @@
         // Start onze eigen 'timeupdate' loop
         if (timeUpdater) clearInterval(timeUpdater);
         timeUpdater = setInterval(updatePlayerTime, 250);
-
-        // Scroll de pagina zodat de video bovenaan staat en het logo (header) wegvalt
-        // Dit gebeurt alleen als we niet meer in de intro-modus zijn
-        if (!document.body.classList.contains('index-mode')) {
-          document.querySelector('.main-container').scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'start' 
-          });
-        }
       } else {
         playBtn.innerHTML = playIcon;
         // Stop de loop als de video pauzeert of stopt
@@ -1209,8 +1202,8 @@
     
     // Alleen luisteren naar muisbewegingen OP de waslijn sectie
     scrollContainer.addEventListener('mousemove', (e) => {
-      const threshold = 150; // Aantal pixels vanaf de rand waar scrollen begint
-      const maxSpeed = 8; // Maximale scrollsnelheid
+      const threshold = 200; // Iets grotere zone voor betere activatie
+      const maxSpeed = 10; // Iets sneller voor meer comfort
       
       if (e.clientX < threshold) {
         scrollSpeed = -((threshold - e.clientX) / threshold) * maxSpeed;
@@ -1218,6 +1211,11 @@
         scrollSpeed = ((e.clientX - (window.innerWidth - threshold)) / threshold) * maxSpeed;
       } else {
         scrollSpeed = 0;
+      }
+
+      // CRUCIALE FIX: Herstart de loop als deze gestopt was (door stilstand in het midden)
+      if (scrollSpeed !== 0 && !window.autoScrollId) {
+        window.autoScrollId = requestAnimationFrame(autoScrollLoop);
       }
     });
 
@@ -1323,10 +1321,6 @@
       scrollContainer.scrollLeft += scrollSpeed;
       window.autoScrollId = requestAnimationFrame(autoScrollLoop);
     }
-    
-    scrollContainer.addEventListener('mouseenter', () => {
-      if (!window.autoScrollId) window.autoScrollId = requestAnimationFrame(autoScrollLoop);
-    });
 
     // --- URL Opschonen (index.html weghalen) ---
     if (window.history.replaceState && window.location.pathname.endsWith('index.html')) {
