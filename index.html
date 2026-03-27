@@ -622,7 +622,6 @@
     <img class="lightbox-content" id="lightbox-img">
   </div>
 
-  <script src="https://www.youtube.com/iframe_api"></script>
   <script>
     // --- Forceer scroll naar boven bij refresh (meteen uitvoeren) ---
     // Dit voorkomt dat de browser de scrollpositie onthoudt en de animatie afkapt
@@ -860,7 +859,7 @@
         host: 'https://www.youtube-nocookie.com',
         videoId: YOUTUBE_VIDEO_ID,
         playerVars: {
-          autoplay: 1,
+          autoplay: 0, // We regelen het starten via de scroll-positie
           controls: 0,
           loop: 1,
           playlist: YOUTUBE_VIDEO_ID,
@@ -868,8 +867,7 @@
           modestbranding: 1,
           iv_load_policy: 3,
           playsinline: 1,
-          enablejsapi: 1,
-          origin: window.location.origin
+          enablejsapi: 1
         },
         events: {
           'onReady': onPlayerReady,
@@ -882,6 +880,23 @@
     function onPlayerReady(event) {
       playerReady = true;
       event.target.mute(); // Start gedempt, net als de vorige video
+
+      // Maak een observer aan die kijkt of de video in beeld is
+      const videoWrapper = document.querySelector('.video-wrapper');
+      const videoObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (playerReady) {
+            if (entry.isIntersecting) {
+              player.playVideo(); // Start de video als hij in beeld komt
+            } else {
+              player.pauseVideo(); // Pauzeer de video als hij uit beeld gaat
+            }
+          }
+        });
+      }, { 
+        threshold: 0.3 // Start als 30% van de video zichtbaar is
+      });
+      videoObserver.observe(videoWrapper);
       volumeSlider.value = 0; // Synchroniseer de volume slider
     }
 
@@ -1319,5 +1334,8 @@
       window.history.replaceState(null, '', path);
     }
   </script>
+  
+  <!-- Laad het YouTube script als LAATSTE, nadat alle functies zijn gedefinieerd -->
+  <script src="https://www.youtube.com/iframe_api"></script>
 </body>
 </html>
