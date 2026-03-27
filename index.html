@@ -70,7 +70,7 @@
       align-items: center;
       background-color: #ffffff;
       text-align: center;
-      transition: all 0.8s cubic-bezier(0.65, 0, 0.35, 1); /* Soepele 'whoosh' animatie */
+      transition: height 0.5s ease-in-out; /* Specifieke transitie is veel sneller dan 'all' */
       position: relative;
       z-index: 100;
       flex-shrink: 0;
@@ -90,7 +90,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      transition: max-width 0.8s cubic-bezier(0.65, 0, 0.35, 1); /* Smooth scaling */
+      transition: max-width 0.5s ease-in-out;
       cursor: pointer; /* Alleen de content is klikbaar */
       /* Zorg dat de content-wrapper de klik vangt, niet de header */
       pointer-events: auto;
@@ -118,17 +118,8 @@
 
     /* De trillende animatie voor de index elementen */
     .vibrate-target {
-      animation: vibration 0.5s linear infinite; /* Snelheid gelijkgetrokken met iconen */
       will-change: transform;
       transform: translateZ(0); /* Forceert GPU versnelling op oudere Macs */
-    }
-
-    @keyframes vibration {
-      0% { transform: translate(calc(var(--v-x) * 1px), calc(var(--v-y) * 1px)) rotate(calc(var(--v-r) * 1deg)); }
-      25% { transform: translate(calc(var(--v-x) * -1.5px), calc(var(--v-y) * 2px)) rotate(calc(var(--v-r) * -1.2deg)); }
-      50% { transform: translate(calc(var(--v-x) * 2px), calc(var(--v-y) * -1px)) scale(calc(1 + var(--v-s))); }
-      75% { transform: translate(calc(var(--v-x) * -1px), calc(var(--v-y) * -2.5px)) rotate(calc(var(--v-r) * 0.8deg)); }
-      100% { transform: translate(calc(var(--v-x) * 1px), calc(var(--v-y) * 1px)); }
     }
 
     /* --- Einde Index Styles --- */
@@ -492,8 +483,8 @@
     }
 
     .lightbox-content {
-      max-width: 70%;
-      max-height: 80vh;
+      max-width: 70%; /* Dit bepaalt de maximale breedte (70% van het scherm) */
+      max-height: 80vh; /* Dit bepaalt de maximale hoogte (80% van het scherm) */
       border: 3px solid white;
       box-shadow: 0 0 25px rgba(0,0,0,0.5);
       transform-origin: center center;
@@ -552,14 +543,29 @@
     <div class="clothesline-section">
       <div class="rope"></div>
       <div class="hanging-items-wrapper" id="clotheslineSection">
-        <!-- Thuis Sectie -->
-        <div class="hanging-item" data-active="true">
-          <img src="links/thuis/beeld/2.jpg" alt="Monoprint Work">
-        </div>
-        <div class="hanging-item" data-active="true">
-          <img src="links/thuis/beeld/3.jpg" alt="Monoprint Work">
-        </div>
-        <!-- MA Sectie (wordt aangevuld door JS) -->
+        <!-- Thuis Projecten -->
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/1.jpg" alt="Thuis 1"></div>
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/2.jpg" alt="Thuis 2"></div>
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/3.jpg" alt="Thuis 3"></div>
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/4.jpg" alt="Thuis 4"></div>
+
+        <!-- MA Projecten (Hardcoded voor maximale snelheid) -->
+        <div class="hanging-item" id="ma-project-start"><img src="links/MA/beeld/1.jpg" alt="MA 1" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/2.jpg" alt="MA 2" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/3.jpg" alt="MA 3" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/4.jpg" alt="MA 4" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/5.jpg" alt="MA 5" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/6.jpg" alt="MA 6" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/7.jpg" alt="MA 7" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/8.jpg" alt="MA 8" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/9.jpg" alt="MA 9" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/10.jpg" alt="MA 10" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/11.jpg" alt="MA 11" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/12.jpg" alt="MA 12" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/13.jpg" alt="MA 13" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/14.jpg" alt="MA 14" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/15.jpg" alt="MA 15" loading="lazy"></div>
+        <div class="hanging-item"><img src="links/MA/beeld/16.jpg" alt="MA 16" loading="lazy"></div>
       </div>
     </div>
     
@@ -673,11 +679,11 @@
         // Ga naar Manual Mode
         body.classList.remove('index-mode');
         
-        // Scroll zodat de onderkant van het tekstkader precies de onderkant van het venster raakt (ankerpunt)
-        // Aangepast naar 'center' op de waslijn zodat de werken niet buiten beeld vallen
+        // Snellere scroll-activatie voor oude systemen
         setTimeout(() => {
-          document.querySelector('.clothesline-section').scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 600); // Iets langer wachten op de header animatie voor correcte positie
+          const target = document.querySelector('.clothesline-section');
+          window.scrollTo({ top: target.offsetTop - 100, behavior: 'smooth' });
+        }, 500); 
 
         // Stop video (optioneel, of laat hem ready staan)
       } else {
@@ -692,31 +698,32 @@
     function updateIndexVibration(timestamp) {
       // Bepaal doel intensiteit
       if (isHoveringHeader) {
-        targetVibrationIntensity = 3.0; // Versneld/actiever bij hover, maar niet te wild
+        targetVibrationIntensity = 1.0; // Verlaagd van 3.0 voor een rustigere hover
       } else {
         // Als we niet hoveren:
-        // Index mode: rustig aanwezig (was 2.5 -> nu 0.8)
-        // Manual mode: heel subtiel (was 1.0 -> nu 0.3)
-        targetVibrationIntensity = body.classList.contains('index-mode') ? 0.8 : 0.3;
+        // Index mode: rustig aanwezig (was 0.8 -> nu 0.3)
+        // Manual mode: bijna onzichtbaar (was 0.3 -> nu 0.05)
+        targetVibrationIntensity = body.classList.contains('index-mode') ? 0.3 : 0.05;
       }
 
       // Smooth transition van intensiteit (Ease logic)
       vibrationIntensity += (targetVibrationIntensity - vibrationIntensity) * 0.05;
 
-      // Optimalisatie: pas als de intensiteit is 'afgekoeld' naar de ruststand (0.3 in manual mode),
+      // Optimalisatie: pas als de intensiteit is 'afgekoeld' naar de ruststand,
       // stoppen we met de zware DOM-updates om de CPU te sparen.
-      if (!body.classList.contains('index-mode') && !isHoveringHeader && vibrationIntensity < 0.35) {
+      if (!body.classList.contains('index-mode') && !isHoveringHeader && vibrationIntensity < 0.1) {
         vibrationAnimationId = null; // Markeer als gestopt
+        document.querySelectorAll('.vibrate-target').forEach(el => el.style.transform = 'translateZ(0)');
         return; 
       }
 
-      // Zet CSS variabelen op de vibrate-targets
+      const t = timestamp * 0.005; // Tijd-constante voor vloeiende beweging
       document.querySelectorAll('.vibrate-target').forEach(el => {
-          // Geen random meer, maar stabiele waardes die de keyframe-loop aansturen (net als bij de iconen)
-          el.style.setProperty('--v-x', vibrationIntensity * 0.5);
-          el.style.setProperty('--v-y', vibrationIntensity * 0.5);
-          el.style.setProperty('--v-r', vibrationIntensity * 0.2);
-          el.style.setProperty('--v-s', vibrationIntensity * 0.005);
+          // Directe transformatie via JS (omzeilt CSS variabele compatibiliteitsproblemen op 2011 Macs)
+          const x = Math.sin(t * 10) * vibrationIntensity;
+          const y = Math.cos(t * 8) * vibrationIntensity;
+          const r = Math.sin(t * 7) * (vibrationIntensity * 0.5);
+          el.style.transform = `translate3d(${x}px, ${y}px, 0) rotate(${r}deg)`;
       });
       vibrationAnimationId = requestAnimationFrame(updateIndexVibration);
     }
@@ -853,7 +860,7 @@
         host: 'https://www.youtube-nocookie.com',
         videoId: YOUTUBE_VIDEO_ID,
         playerVars: {
-          autoplay: 0,
+          autoplay: 1,
           controls: 0,
           loop: 1,
           playlist: YOUTUBE_VIDEO_ID,
@@ -998,21 +1005,6 @@
     
     // Array voor physics objecten (houdt snelheid en hoek bij per item)
     const physicsItems = [];
-
-    // --- Genereer MA sectie (1 t/m 21) ---
-    const fragment = document.createDocumentFragment(); // Sneller toevoegen aan DOM
-    for (let i = 1; i <= 21; i++) {
-      const itemDiv = document.createElement('div');
-      itemDiv.className = 'hanging-item';
-      if (i === 1) itemDiv.id = 'ma-project-start'; // Markeer het eerste item als startpunt
-      const img = document.createElement('img');
-      img.src = `links/MA/beeld/${i}.jpg`;
-      img.loading = "lazy"; // Bespaart RAM op oude systemen
-      img.alt = `MA Work ${i}`;
-      itemDiv.appendChild(img);
-      fragment.appendChild(itemDiv);
-    }
-    clotheslineWrapper.appendChild(fragment);
 
     // Intersection Observer om physics alleen te draaien voor wat in beeld is
     const observerOptions = { root: clotheslineWrapper, threshold: 0.1 };
