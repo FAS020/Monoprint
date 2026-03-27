@@ -544,10 +544,10 @@
       <div class="rope"></div>
       <div class="hanging-items-wrapper" id="clotheslineSection">
         <!-- Thuis Projecten -->
-        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/1.jpg" alt="Thuis 1"></div>
-        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/2.jpg" alt="Thuis 2"></div>
-        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/3.jpg" alt="Thuis 3"></div>
-        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/4.jpg" alt="Thuis 4"></div>
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/1.jpg" alt="Thuis 1" loading="lazy"></div>
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/2.jpg" alt="Thuis 2" loading="lazy"></div>
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/3.jpg" alt="Thuis 3" loading="lazy"></div>
+        <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/4.jpg" alt="Thuis 4" loading="lazy"></div>
 
         <!-- MA Projecten (Hardcoded voor maximale snelheid) -->
         <div class="hanging-item" id="ma-project-start"><img src="links/MA/beeld/1.jpg" alt="MA 1" loading="lazy"></div>
@@ -652,6 +652,9 @@
     let vibrationAnimationId = null; // Voor het stoppen van de loop
     let physicsAnimationId = null;   // Voor het stoppen van de physics loop
 
+    // PERFORMANCE OPTIMALISATIE: Cache de targets buiten de loop
+    const vibrateTargets = document.querySelectorAll('.vibrate-target');
+
     // Functie voor het wisselen van woorden (Subtitle) - draait onafhankelijk van de zware vibratie-loop
     function cycleSubtitles() {
       wordIndex = (wordIndex + 1) % woorden.length;
@@ -712,12 +715,12 @@
       // stoppen we met de zware DOM-updates om de CPU te sparen.
       if (!body.classList.contains('index-mode') && !isHoveringHeader && vibrationIntensity < 0.1) {
         vibrationAnimationId = null; // Markeer als gestopt
-        document.querySelectorAll('.vibrate-target').forEach(el => el.style.transform = 'translateZ(0)');
+        vibrateTargets.forEach(el => el.style.transform = 'translateZ(0)');
         return; 
       }
 
       const t = timestamp * 0.005; // Tijd-constante voor vloeiende beweging
-      document.querySelectorAll('.vibrate-target').forEach(el => {
+      vibrateTargets.forEach(el => {
           // Directe transformatie via JS (omzeilt CSS variabele compatibiliteitsproblemen op 2011 Macs)
           const x = Math.sin(t * 10) * vibrationIntensity;
           const y = Math.cos(t * 8) * vibrationIntensity;
@@ -859,7 +862,7 @@
         host: 'https://www.youtube-nocookie.com',
         videoId: YOUTUBE_VIDEO_ID,
         playerVars: {
-          autoplay: 0, // We regelen het starten via de scroll-positie
+          autoplay: 1, // Start direct laden om de thumbnail te verbergen
           controls: 0,
           loop: 1,
           playlist: YOUTUBE_VIDEO_ID,
@@ -880,6 +883,7 @@
     function onPlayerReady(event) {
       playerReady = true;
       event.target.mute(); // Start gedempt, net als de vorige video
+      event.target.pauseVideo(); // Pauzeer direct om het eerste frame te tonen in plaats van de thumbnail
 
       // Maak een observer aan die kijkt of de video in beeld is
       const videoWrapper = document.querySelector('.video-wrapper');
