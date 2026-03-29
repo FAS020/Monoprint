@@ -30,7 +30,7 @@
     html, body, * {
       cursor: var(--cursor-url), auto !important;
     }
-
+    
     /* Font definitie */
     @font-face {
       font-family: 'Avenir';
@@ -132,7 +132,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin: 0 auto 20px auto; /* Marge boven verwijderd zodat video dichter op tekst staat */
+      margin: 40px auto 40px auto; /* Video iets lager geplaatst voor meer rust */
     }
 
     /* Iconen navigatie boven de video */
@@ -222,6 +222,8 @@
       background-color: #ffffff;
       padding: 35px 20px; /* Vaste ruimte bovenin */
       margin: 0 0 20px 0;
+      overflow-wrap: break-word;
+      word-wrap: break-word; /* Voor oudere browsers */
     }
 
     .tooltip-title {
@@ -401,7 +403,7 @@
       display: flex;
       flex-wrap: nowrap; /* Zorgt dat items op één lijn blijven */
       width: 100%;
-      overflow-x: auto; /* De items scrollen hier */
+      overflow-x: scroll; /* De items scrollen hier */
       -webkit-overflow-scrolling: touch;
       /* Scrollbars verbergen */
       -ms-overflow-style: none;
@@ -410,7 +412,7 @@
       justify-content: flex-start; /* Links beginnen */
       /* Padding links berekend om te lijnen met .main-container (max 900px, 70% width) */
       padding-left: max((100% - 900px) / 2, 15%);
-      padding-right: max((100% - 900px) / 2, 15%); /* Zelfde padding rechts, zodat laatste item netjes uitlijnt */
+      padding-right: 60vw; /* Veel meer ruimte rechts zodat het laatste werk volledig gecentreerd kan worden */
       gap: 60px; /* Iets meer ruimte tussen de werken */
       align-items: flex-start;
       padding-top: 50px; /* Meer ruimte boven zodat de 'top' van de works niet afgekapt wordt bij rotatie */
@@ -425,17 +427,84 @@
       position: relative;
       background: transparent;
       padding: 0;
-      border: 1px solid #e0e0e0; /* Border is veel lichter voor de GPU dan box-shadow */
+      border: 1px solid #e0e0e0;
       transform-origin: top center;
       --rotation: 0deg;
       transform: rotate(var(--rotation));
       /* Transition verwijderd voor transform zodat JS de FLIP animatie strak kan overnemen zonder conflict */
-      transition: box-shadow 0.2s ease; 
       max-width: 250px;
       z-index: 2; /* Zorg dat de werken BOVEN de lijn (z-index 1) liggen */
       flex-shrink: 0; /* Voorkomt dat items kleiner worden als de lijn vol raakt */
       cursor: pointer;
     }
+
+    /* Effect voor de MA Stapel: laat het lijken op meerdere vellen papier */
+    #ma-stack::before,
+    #ma-stack::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      z-index: -1; /* Achter de hoofdfoto */
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* De achterliggende vellen zijn een klein beetje gedraaid en verschoven */
+    #ma-stack::before {
+      transform: rotate(2deg) translate(4px, 2px);
+    }
+    #ma-stack::after {
+      transform: rotate(-1.5deg) translate(-2px, 4px);
+    }
+
+    /* Interactieve Waaier: de lagen schuiven uit bij hover */
+    #ma-stack:hover::before {
+      transform: rotate(6deg) translate(12px, 5px);
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+    }
+    #ma-stack:hover::after {
+      transform: rotate(-5deg) translate(-10px, 8px);
+      box-shadow: -2px 2px 10px rgba(0,0,0,0.1);
+    }
+
+    /* Specifieke styling voor de Blanco Werk upload knop */
+    #uploadTrigger {
+      width: 250px;
+      aspect-ratio: 0.7 / 1; /* Matcht het formaat van de prints */
+      border: 1px dashed #ccc;
+      background: #fafafa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Styling voor het archief-label als een knijper bovenaan */
+    /* Aangepast naar een simpele rechthoek met outline, gecentreerd bovenop */
+    .item-counter {
+      position: absolute;
+      top: -12px; /* Half buiten naar boven verschoven */
+      left: 50%;
+      transform: translateX(-50%); /* Exact centreren */
+      background: #ffffff;
+      color: #000;
+      border: 1px solid #333;
+      padding: 4px 12px; /* Iets meer ademruimte voor het grotere font */
+      font-family: 'Avenir', sans-serif;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      /* text-transform: uppercase; verwijderd */
+      /* letter-spacing: 1px; verwijderd voor normale tekst */
+      z-index: 5;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+
     .hanging-item { 
       will-change: transform;
       transform: translateZ(0);
@@ -486,30 +555,220 @@
       max-width: 70%; /* Dit bepaalt de maximale breedte (70% van het scherm) */
       max-height: 80vh; /* Dit bepaalt de maximale hoogte (80% van het scherm) */
       border: 1px solid #e0e0e0;
-      box-shadow: 0 0 25px rgba(0,0,0,0.5);
       transform-origin: center center;
-      cursor: zoom-out;
+      display: none; /* We gebruiken nu de gallery container */
+    }
+
+    /* --- Upload Modal Styles --- */
+    .upload-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.98);
+      z-index: 3000;
+      display: none; /* Stand-by */
+      flex-direction: row; /* Layout naast elkaar */
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      gap: 60px;
+    }
+    .upload-modal.active { display: flex; }
+    
+    .upload-zone {
+      width: 250px;
+      aspect-ratio: 0.7 / 1; /* Matcht exact het formaat van de werken */
+      border: 1px dashed #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      background: #f9f9f9;
+    }
+    /* Canvas vult de hele zone voor de preview */
+    .upload-zone canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .upload-zone .plus-sign { font-size: 50px; color: #ccc; }
+    .upload-zone .drag-hint {
+      margin-bottom: 5px;
+      text-align: left;
+      font-size: 10px;
+      color: #888;
+      pointer-events: none;
+      font-family: 'Avenir', sans-serif;
+    }
+
+    .upload-form {
+      display: flex;
+      flex-direction: column;
+      gap: 5px; /* Velden staan nog dichter op elkaar */
+      width: 100%;
+      max-width: 400px;
+      display: none;
+      text-align: left;
+    }
+    .upload-form .input-group {
+       display: flex;
+       flex-direction: column;
+       gap: 5px;
+    }
+    .required-star { color: red; visibility: hidden; }
+    .error .required-star { visibility: visible; }
+
+    .upload-form input, 
+    .upload-form textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      font-family: 'Avenir', sans-serif;
+      outline: none;
+      resize: none;
+    }
+
+    /* Font-hiërarchie in de uploader */
+    #upTitle { font-size: 16px; }
+    #upDesc { font-size: 14px; }
+    #upAuthor { font-size: 14px; font-style: italic; }
+
+    .upload-form input.invalid::placeholder,
+    .upload-form textarea.invalid::placeholder {
+      color: red;
+    }
+
+    .char-counter {
+      font-size: 11px;
+      text-align: right;
+      color: #888;
+      margin-top: 5px; /* Ruimte onder het tekstvak, niet erin */
+    }
+    
+    .char-counter.limit-reached {
+      color: red;
+      font-weight: bold;
+    }
+    .btn-place {
+      background: #000;
+      color: white;
+      border: none;
+      padding: 15px;
+      font-family: 'Avenir', sans-serif;
+      margin-top: 10px;
+    }
+    .btn-cancel {
+      background: #fff;
+      color: #000;
+      border: 1px solid #000;
+      padding: 15px;
+      font-family: 'Avenir', sans-serif;
+      margin-top: 0;
+    }
+    .close-upload { display: none; } /* Kruisje verwijderd */
+
+    /* Zorg dat de custom cursor op de knoppen blijft */
+    .btn-place, 
+    .btn-cancel,
+    .upload-zone {
+      cursor: var(--cursor-url), auto !important;
+    }
+
+    /* Styled Error Popup */
+    #customErrorPopup {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #000;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 0;
+      font-family: 'Avenir', sans-serif;
+      z-index: 4000;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    #customErrorPopup.active {
+      transform: translateX(-50%) translateY(0);
+    }
+    /* --- Lightbox Gallery Library Styles --- */
+    .lightbox-gallery {
+      display: flex;
+      align-items: center; /* Zorgt dat alles op één horizontale as staat */
+      gap: 150px; /* Grotere tussenruimte zodat beelden elkaar niet in de weg zitten */
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      width: 100%;
+      height: 100%;
+      padding: 0 45vw; /* Nog meer padding zodat ook het eerste/laatste beeld exact in het midden kan staan */
+      scroll-behavior: smooth;
+    }
+
+    .gallery-item-img {
+      flex: 0 0 auto;
+      scroll-snap-align: center;
+      max-height: 60vh;
+      width: auto;
+      border: 1px solid rgba(255,255,255,0.2);
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s, filter 0.6s;
+      transform: scale(0.5); /* Duidelijk kleiner voor de 'niet-gecentreerde' werken */
+      opacity: 0.2;
+      filter: blur(4px); /* Iets meer blur voor focus-effect */
+    }
+
+    .gallery-item-img.active {
+      transform: scale(1.1); /* Gecentreerde afbeelding is aanzienlijk groter */
+      opacity: 1;
+      filter: blur(0px);
+      border: 1px solid #fff;
     }
     
     /* --- Project Text Status --- */
     .project-status {
       width: 60%; /* Iets smaller dan de retro marge */
       max-width: 800px;
-      min-height: 300px; /* Vaste hoogte iets verlaagd zodat video dichterbij komt */
-      margin: -120px auto 0 auto; /* Gecentreerd en omhoog getrokken */
+      height: 170px; /* Vaste hoogte voorkomt dat de video 1px verspringt */
+      margin: -140px auto 10px auto; /* Iets minder hoog opgetrokken voor meer ruimte bij de werken */
       display: flex; /* Flexbox voor centreren van tekst */
       flex-direction: column;
-      justify-content: flex-start; /* Uitlijnen aan de bovenkant zodat titel niet springt */
+      justify-content: flex-start; 
       text-align: center;
       font-family: 'Avenir', sans-serif;
       font-size: 14px;
       color: #333;
       position: relative;
       z-index: 5;
-      font-weight: normal;
-      border: none; /* Outline verwijderd */
       background-color: #fff; /* Witte achtergrond voor leesbaarheid */
-      padding: 40px 0 20px 0; /* Ruime padding bovenin zorgt voor vaste titelpositie */
+      padding: 20px 20px 10px 20px; 
+      overflow-wrap: break-word;
+    }
+
+    /* Vast tekstgebied zodat de puntjes niet verspringen */
+    #projectTextContent {
+      height: 110px; /* Iets minder hoog voor compactheid */
+      overflow: hidden;
+    }
+
+    /* Paginering puntjes */
+    .dot-container {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-top: 5px; /* Dichter op de tekst */
+    }
+    .dot {
+      width: 6px;
+      height: 6px;
+      background-color: #ccc; /* Grijs voor inactief */
+      border-radius: 50%;
+      transition: background-color 0.3s ease;
+    }
+    .dot.active {
+      background-color: #000; /* Zwart voor actief */
     }
 
     /* --- Responsive Styles --- */
@@ -543,34 +802,38 @@
     <div class="clothesline-section">
       <div class="rope"></div>
       <div class="hanging-items-wrapper" id="clotheslineSection">
+        <!-- De vaste Upload Knop (Blanco Werk) -->
+        <div class="hanging-item" id="uploadTrigger">
+           <span style="font-size: 60px; color: #888; font-weight: 100;">+</span>
+        </div>
+
         <!-- Thuis Projecten -->
         <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/1.jpg" alt="Thuis 1" loading="lazy"></div>
         <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/2.jpg" alt="Thuis 2" loading="lazy"></div>
         <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/3.jpg" alt="Thuis 3" loading="lazy"></div>
         <div class="hanging-item" data-active="true"><img src="links/thuis/beeld/4.jpg" alt="Thuis 4" loading="lazy"></div>
 
-        <!-- MA Projecten (Hardcoded voor maximale snelheid) -->
-        <div class="hanging-item" id="ma-project-start"><img src="links/MA/beeld/1.jpg" alt="MA 1" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/2.jpg" alt="MA 2" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/3.jpg" alt="MA 3" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/4.jpg" alt="MA 4" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/5.jpg" alt="MA 5" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/6.jpg" alt="MA 6" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/7.jpg" alt="MA 7" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/8.jpg" alt="MA 8" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/9.jpg" alt="MA 9" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/10.jpg" alt="MA 10" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/11.jpg" alt="MA 11" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/12.jpg" alt="MA 12" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/13.jpg" alt="MA 13" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/14.jpg" alt="MA 14" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/15.jpg" alt="MA 15" loading="lazy"></div>
-        <div class="hanging-item"><img src="links/MA/beeld/16.jpg" alt="MA 16" loading="lazy"></div>
+        <!-- MA Projecten Stapel -->
+        <div class="hanging-item" id="ma-stack" data-project="ma">
+          <img src="links/MA/beeld/1.jpg" alt="MA Gallery" loading="lazy">
+          <div class="item-counter">
+            16 prints
+          </div>
+        </div>
       </div>
     </div>
     
     <!-- Statisch Tekst Kader -->
-    <div class="project-status" id="projectLabel"><span style="font-size: 16px; display: block; margin-bottom: 25px;">Monoprint Manual To...</span><span style="display: block; margin-bottom: 25px;">Hoe kom je in aanraking met analoge grafische technieken wanneer je hier nooit aan bent geïntroduceerd? Bij welke werkplaatsen kun jij makend terecht na het afstuderen aan de kunstacademie?</span>Tijdens dit project heb ik geprobeerd de analoge techniek ‘Monoprint’ toegankelijk te maken voor verschillende groepen mensen. Bewust maken hoe je zonder ervaring, kunstacademie, werkplaats of budget toch een communicatiemiddel en ontwerp kan creëren in een korte tijd. Een techniek die zich leent om anoniem te blijven, provoceert maar ook reageert op de handelingen van de maker.</div>
+    <div class="project-status" id="projectLabel">
+      <div id="projectTextContent">
+        <!-- Wordt gevuld door JS -->
+      </div>
+      <div class="dot-container" id="dotContainer">
+        <div class="dot active"></div>
+        <div class="dot"></div>
+        <div class="dot"></div>
+      </div>
+    </div>
 
   <div class="main-container">
     <div class="video-wrapper">
@@ -619,8 +882,47 @@
   <footer class="info-footer"><span>Monoprint Manual - Franco Soolsma <span id="info-year"></span></span></footer>
 
   <div id="lightbox" class="lightbox-overlay">
-    <img class="lightbox-content" id="lightbox-img">
+    <div class="lightbox-gallery" id="lightboxGallery">
+      <!-- Wordt gevuld door JS -->
+    </div>
   </div>
+
+  <!-- Upload Scherm Overlay -->
+  <div id="uploadModal" class="upload-modal">
+    <div style="display: flex; flex-direction: column; align-items: flex-start; flex: 0 0 250px;">
+      <div class="drag-hint" id="dragHint" style="display:none;">Sleep om te positioneren</div>
+      <div class="upload-zone" id="dropZone">
+        <span class="plus-sign" id="plusPreview">+</span>
+        <input type="file" id="fileInput" accept="image/*" style="display:none;">
+      </div>
+    </div>
+
+    <div class="upload-form" id="uploadForm">
+      <div class="input-group" id="groupTitle">
+        <label>Titel <span class="required-star">*</span></label>
+        <input type="text" id="upTitle" maxlength="50">
+        <div class="char-counter" id="titleCounterContainer"><span id="titleCharCount">0</span>/50</div>
+      </div>
+      
+      <div class="input-group" id="groupDesc">
+        <label>Tekst</label>
+        <textarea id="upDesc" rows="5" maxlength="200"></textarea>
+        <div class="char-counter" id="descCounterContainer"><span id="charCount">0</span>/200</div>
+      </div>
+
+      <div class="input-group" id="groupAuthor">
+        <label>Gemaakt door <span class="required-star">*</span></label>
+        <input type="text" id="upAuthor" maxlength="50">
+        <div class="char-counter" id="authorCounterContainer"><span id="authorCharCount">0</span>/50</div>
+      </div>
+      
+      <button class="btn-place" id="btnSubmitUpload">Ophangen</button>
+      <button class="btn-cancel" id="btnCancelUpload">Annuleren</button>
+    </div>
+  </div>
+
+  <!-- Custom Error Popup -->
+  <div id="customErrorPopup">Afbeelding is te groot!</div>
 
   <script>
     // --- Forceer scroll naar boven bij refresh (meteen uitvoeren) ---
@@ -664,8 +966,13 @@
     }
 
     // Project teksten definities
-    const textProject1 = "<span style=\"font-size: 16px; display: block; margin-bottom: 25px;\">Monoprint Manual To...</span><span style=\"display: block; margin-bottom: 25px;\">Hoe kom je in aanraking met analoge grafische technieken wanneer je hier nooit aan bent geïntroduceerd? Bij welke werkplaatsen kun jij makend terecht na het afstuderen aan de kunstacademie?</span>Tijdens dit project heb ik geprobeerd de analoge techniek ‘Monoprint’ toegankelijk te maken voor verschillende groepen mensen. Bewust maken hoe je zonder ervaring, kunstacademie, werkplaats of budget toch een communicatiemiddel en ontwerp kan creëren in een korte tijd. Een techniek die zich leent om anoniem te blijven, provoceert maar ook reageert op de handelingen van de maker.";
-    const textProject2 = "<span style=\"font-size: 16px; display: block; margin-bottom: 25px;\">Media College Amsterdam</span><span style=\"display: block; margin-bottom: 25px;\">In samenwerking met mijn voormalig mentor van het Media College Amsterdam (Media Vormgeving) heb ik mijn workshop mogen geven tijdens een keuzedeel.</span>Studenten van verschillende opleidingen volgen dit keuzedeel waar zij elke week aan een andere techniek worden geïntroduceerd. Het thema van de les stond in teken van protest, dit kwam goed overeen met mijn individuele lesbrief waaruit een fijne samenwerking ontstond.";
+    const textProject1Title = "<span style=\"font-size: 16px; display: block; margin-bottom: 25px;\">Monoprint Manual To...</span>";
+    const textProject1Parts = [
+      "Hoe kom je in aanraking met analoge grafische technieken wanneer je hier nooit aan bent geïntroduceerd? Bij welke werkplaatsen kun jij makend terecht na het afstuderen aan de kunstacademie? En hoe kom je achter deze technieken als je niet van een kunstacademie afkomt?",
+      "Tijdens dit project heb ik onderzocht hoe je de analoge techniek ‘Monoprint’ toegankelijk maakt voor verschillende groepen mensen. Bewustwording hoe je zonder ervaring, kunstacademie, werkplaats of budget toch een communicatiemiddel en ontwerp kan creëren in een korte tijd. Een techniek die zich leent om anoniem te blijven, provoceert maar ook reageert op de handelingen van de maker.",
+      "In tegenstelling tot een digitaal medium zijn analoge uitingen tastbaar en communiceren direct een boodschap. De materialen nemen een taak van de maker over, een toeval dat niet te hanteren is; een fysieke samenwerking. Misschien zijn analoge uitingen nog wel de enige manier waarop een maker zich consequentieloos kan uitspreken."
+    ];
+    const textProject2 = "<span style=\"font-size: 16px; display: block; margin-bottom: 25px;\">Mediacollege Amsterdam</span><span style=\"display: block;\">Tijdens een keuzedeel van de opleidingen binnen het Mediacollege heb ik de studenten geïntroduceerd aan monoprint. De studenten hebben geleerd een boodschap te communiceren met deze analoge druktechniek, uitgedrukt in een protest.</span>";
 
     // Hover detectie voor de header content (Titel + Subtitel)
     headerContent.addEventListener('mouseenter', () => { isHoveringHeader = true; });
@@ -681,11 +988,13 @@
         // Ga naar Manual Mode
         body.classList.remove('index-mode');
         
-        // Snellere scroll-activatie voor oude systemen
+        // Wacht tot de header-animatie (0.5s) bijna klaar is en scroll dan.
+        // Door 'block: start' te gebruiken zonder extra offset, staat de rope 
+        // precies bovenaan en past de tekst eronder er veel beter op.
         setTimeout(() => {
           const target = document.querySelector('.clothesline-section');
-          window.scrollTo({ top: target.offsetTop - 100, behavior: 'smooth' });
-        }, 500); 
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 550); 
 
         // Stop video (optioneel, of laat hem ready staan)
       } else {
@@ -1009,11 +1318,287 @@
     // Initialiseer de cursor direct bij het laden (dit lost het probleem op GitHub Pages op)
     randomizeCursor();
 
+    // --- Upload Systeem Logic ---
+    const fileInput = document.getElementById('fileInput');
+    const uploadTrigger = document.getElementById('uploadTrigger'); 
+    const uploadModal = document.getElementById('uploadModal');
+    const dropZone = document.getElementById('dropZone');
+    const uploadForm = document.getElementById('uploadForm');
+    const btnSubmitUpload = document.getElementById('btnSubmitUpload');
+    const btnCancelUpload = document.getElementById('btnCancelUpload');
+    const plusPreview = document.getElementById('plusPreview');
+    const upDesc = document.getElementById('upDesc');
+    const upTitle = document.getElementById('upTitle');
+    const upAuthor = document.getElementById('upAuthor');
+    const charCount = document.getElementById('charCount');
+    const titleCharCount = document.getElementById('titleCharCount');
+    const authorCharCount = document.getElementById('authorCharCount');
+    const authorCounterContainer = document.getElementById('authorCounterContainer');
+    const titleCounterContainer = document.getElementById('titleCounterContainer');
+    const descCounterContainer = document.getElementById('descCounterContainer');
+    const customErrorPopup = document.getElementById('customErrorPopup');
+    const dragHint = document.getElementById('dragHint');
+
+    // Live character counter
+    upDesc.addEventListener('input', () => {
+      const len = upDesc.value.length;
+      charCount.textContent = len;
+      if (len >= 200) descCounterContainer.classList.add('limit-reached');
+      else descCounterContainer.classList.remove('limit-reached');
+
+      if (upDesc.value.length > 0) {
+        upDesc.classList.remove('invalid');
+        document.getElementById('groupDesc').classList.remove('error');
+      }
+    });
+
+    upTitle.addEventListener('input', () => {
+      const len = upTitle.value.length;
+      titleCharCount.textContent = len;
+      
+      if (len >= 50) titleCounterContainer.classList.add('limit-reached');
+      else titleCounterContainer.classList.remove('limit-reached');
+
+      if (upTitle.value.length > 0) {
+        upTitle.classList.remove('invalid');
+        document.getElementById('groupTitle').classList.remove('error');
+      }
+    });
+
+    upAuthor.addEventListener('input', () => {
+      const len = upAuthor.value.length;
+      authorCharCount.textContent = len;
+      if (len >= 50) authorCounterContainer.classList.add('limit-reached');
+      else authorCounterContainer.classList.remove('limit-reached');
+      if (upAuthor.value.length > 0) {
+        upAuthor.classList.remove('invalid');
+        document.getElementById('groupAuthor').classList.remove('error');
+      }
+    });
+
+    let rawImage = null;
+    let isPanning = false;
+    let startX, startY;
+    let offsetX = 0.5, offsetY = 0.5; // 0 tot 1 (centrum)
+
+    function showCustomError(msg) {
+      customErrorPopup.textContent = msg;
+      customErrorPopup.classList.add('active');
+      setTimeout(() => customErrorPopup.classList.remove('active'), 3000);
+    }
+
+    // Open modal via de knop aan de waslijn
+    uploadTrigger.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', () => fileInput.click());
+    
+    btnCancelUpload.addEventListener('click', () => {
+      uploadModal.classList.remove('active');
+      resetUploadForm();
+    });
+
+    fileInput.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      if (file.size > 5 * 1024 * 1024) { // Verhoogd naar 5MB omdat we hem toch verkleinen
+        showCustomError("Afbeelding mag niet groter zijn dan 5MB!");
+        fileInput.value = '';
+        return;
+      }
+      
+      uploadModal.classList.add('active');
+
+      const reader = new FileReader();
+      reader.onload = function(event) {
+        processAndCropImage(event.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function renderPreview() {
+      if (!rawImage) return;
+
+      // Pak het canvas dat we in processAndCropImage hebben aangemaakt
+      const canvas = plusPreview.querySelector('canvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+
+      const targetWidth = canvas.width;
+      const targetHeight = canvas.height;
+      const targetRatio = targetWidth / targetHeight;
+      const currentRatio = rawImage.width / rawImage.height;
+      
+      let sw, sh, sx, sy;
+      if (currentRatio > targetRatio) {
+        sh = rawImage.height;
+        sw = rawImage.height * targetRatio;
+        sx = (rawImage.width - sw) * offsetX;
+        sy = 0;
+      } else {
+        sw = rawImage.width;
+        sh = rawImage.width / targetRatio;
+        sx = 0;
+        sy = (rawImage.height - sh) * offsetY;
+      }
+
+      // Teken de uitsnede direct op het canvas (dit is heel snel)
+      ctx.drawImage(rawImage, sx, sy, sw, sh, 0, 0, targetWidth, targetHeight);
+    }
+
+    function processAndCropImage(dataUrl) {
+      rawImage = new Image();
+      rawImage.onload = () => {
+        offsetX = 0.5; offsetY = 0.5;
+        
+        // Maak éénmalig het canvas aan voor de preview
+        const canvas = document.createElement('canvas');
+        canvas.width = 900;
+        canvas.height = 1285;
+        plusPreview.innerHTML = '';
+        plusPreview.appendChild(canvas);
+        
+        renderPreview();
+        uploadForm.style.display = 'flex';
+        dragHint.style.display = 'block';
+      };
+      rawImage.src = dataUrl;
+    }
+
+    // Pan logic voor de uploader
+    dropZone.addEventListener('mousedown', (e) => {
+      if (!rawImage) return;
+      isPanning = true;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      const dx = (e.clientX - startX) * 0.001;
+      const dy = (e.clientY - startY) * 0.001;
+      offsetX = Math.max(0, Math.min(1, offsetX - dx));
+      offsetY = Math.max(0, Math.min(1, offsetY - dy));
+      startX = e.clientX;
+      startY = e.clientY;
+      renderPreview();
+    });
+
+    window.addEventListener('mouseup', () => { isPanning = false; });
+
+    btnSubmitUpload.addEventListener('click', () => {
+      const titleVal = upTitle.value.trim();
+      const authorVal = upAuthor.value.trim();
+      const descVal = upDesc.value.trim();
+      let hasError = false;
+
+      if (!titleVal) {
+        upTitle.classList.add('invalid');
+        document.getElementById('groupTitle').classList.add('error');
+        hasError = true;
+      }
+      if (!authorVal) {
+        upAuthor.classList.add('invalid');
+        document.getElementById('groupAuthor').classList.add('error');
+        hasError = true;
+      }
+
+      if (hasError) return;
+
+      // Feedback voor de gebruiker: knop uitschakelen tijdens upload
+      btnSubmitUpload.disabled = true;
+      btnSubmitUpload.textContent = "Bezig met ophangen...";
+
+      // Pas op het moment van 'Ophangen' maken we de definitieve kleine JPEG
+      const canvas = plusPreview.querySelector('canvas');
+      if (canvas) {
+        const finalDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+        
+        fetch('/api/items', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            image: finalDataUrl,
+            title: titleVal,
+            description: descVal,
+            author: authorVal
+          })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+              addNewItemToClothesline(data.item.src, titleVal, descVal, authorVal);
+              refreshItemsCache(); // Update de positie-cache voor de nieuwe items
+              uploadModal.classList.remove('active');
+              resetUploadForm();
+          }
+        })
+        .catch(err => {
+            console.error("Fout bij uploaden:", err);
+            showCustomError("Upload mislukt. Probeer het opnieuw.");
+        })
+        .finally(() => {
+            // Knop weer herstellen
+            btnSubmitUpload.disabled = false;
+            btnSubmitUpload.textContent = "Ophangen";
+        });
+      }
+    });
+
+    function resetUploadForm() {
+      plusPreview.innerHTML = '+';
+      uploadForm.style.display = 'none';
+      dragHint.style.display = 'none';
+      fileInput.value = '';
+      upTitle.value = '';
+      upDesc.value = '';
+      upAuthor.value = '';
+      upTitle.classList.remove('invalid');
+      upDesc.classList.remove('invalid');
+      upAuthor.classList.remove('invalid');
+      document.getElementById('groupTitle').classList.remove('error');
+      document.getElementById('groupDesc').classList.remove('error');
+      document.getElementById('groupAuthor').classList.remove('error');
+      charCount.textContent = '0';
+      titleCharCount.textContent = '0';
+      authorCharCount.textContent = '0';
+      descCounterContainer.classList.remove('limit-reached');
+      titleCounterContainer.classList.remove('limit-reached');
+      authorCounterContainer.classList.remove('limit-reached');
+      rawImage = null;
+    }
+
+    function addNewItemToClothesline(src, title, desc, author) {
+      const itemDiv = document.createElement('div');
+      itemDiv.className = 'hanging-item uploaded-work';
+      itemDiv.dataset.title = title;
+      itemDiv.dataset.description = desc;
+      itemDiv.dataset.author = author;
+      itemDiv.innerHTML = `<img src="${src}" alt="User Upload">`;
+      clotheslineWrapper.appendChild(itemDiv); // Achteraan toevoegen
+      initHangingItem(itemDiv);
+    }
+
     // --- Waslijn & Lightbox Logic ---
     const lightbox = document.getElementById('lightbox');
-    const lightboxImg = document.getElementById('lightbox-img');
     const clotheslineWrapper = document.getElementById('clotheslineSection');
     let activeSourceItem = null; // Houdt bij welk item aan de waslijn geopend is
+    
+    // Gallery data voor de MA stapel
+    const maGallery = Array.from({length: 16}, (_, i) => `links/MA/beeld/${i+1}.jpg`);
+    const lightboxGallery = document.getElementById('lightboxGallery');
+
+    // Observer voor het vergroten van de gecentreerde afbeelding
+    const galleryObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.intersectionRatio >= 0.85) { // Zeer streng: alleen het exacte midden wordt groot
+          entry.target.classList.add('active');
+        } else {
+          entry.target.classList.remove('active');
+        }
+      });
+    }, { root: lightboxGallery, threshold: [0, 0.85] });
     
     // Array voor physics objecten (houdt snelheid en hoek bij per item)
     const physicsItems = [];
@@ -1031,7 +1616,7 @@
     }, observerOptions);
 
     // --- Pas logica toe op ALLE items (bestaande + nieuwe) ---
-    document.querySelectorAll('.hanging-item').forEach(item => {
+    function initHangingItem(item) {
       visibilityObserver.observe(item);
       const rotation = (Math.random() * 8) - 4; // Geeft een waarde tussen -4 en 4
       item.style.setProperty('--rotation', `${rotation}deg`);
@@ -1060,52 +1645,35 @@
       item.addEventListener('click', () => {
         activeSourceItem = item;
         const imgEl = item.querySelector('img');
-        const imgSrc = imgEl.src;
         
-        // 1. Zet afbeelding klaar in de lightbox (onzichtbaar nog)
-        lightboxImg.src = imgSrc;
-        
-        // 2. Bereken direct de posities voor de FLIP animatie
-        // We moeten de lightbox even tonen (visibility) om de afmetingen te meten, maar opacity 0 houden
-        lightbox.style.visibility = 'visible';
-        lightbox.style.display = 'flex'; // Zeker weten dat hij layout heeft
-        
-        const startRect = imgEl.getBoundingClientRect();
-        const endRect = lightboxImg.getBoundingClientRect();
-        
-        // Reset lightbox weer even voor de animatie start
-        lightbox.style.visibility = ''; 
-        lightbox.style.display = '';
+        // Check of dit de MA stapel is
+        if (item.id === 'ma-stack') {
+          renderGallery(maGallery);
+          updateProjectText(textProject2, -1);
+        } else {
+          renderGallery([imgEl.src]);
+        }
 
-        // 3. Bereken transformaties
-        const scaleX = startRect.width / endRect.width;
-        const scaleY = startRect.height / endRect.height;
-        const translateX = startRect.left - endRect.left + (startRect.width - endRect.width) / 2;
-        const translateY = startRect.top - endRect.top + (startRect.height - endRect.height) / 2;
-        // Gebruik de huidige fysieke rotatie voor een naadloze overgang
-        const rotation = physObj.angle;
-
-        // 4. Start de animatie op de grote afbeelding
-        // We zetten hem EERST op de startpositie (dus precies op de miniatuur)
-        lightboxImg.animate([
-          {
-            transform: `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY}) rotate(${rotation}deg)`
-          },
-          {
-            transform: 'translate(0, 0) scale(1) rotate(0deg)'
-          }
-        ], {
-          duration: 500,
-          easing: 'cubic-bezier(0.2, 0, 0.2, 1)',
-          fill: 'forwards'
-        });
-
-        // 5. Toon de lightbox en verberg direct het origineel
-        // Hierdoor lijkt het alsof het origineel "loskomt"
         lightbox.classList.add('active');
         item.classList.add('is-open');
       });
-    });
+    }
+
+    // Initialiseer alle bestaande items
+    document.querySelectorAll('.hanging-item').forEach(initHangingItem);
+
+    function renderGallery(images) {
+      lightboxGallery.innerHTML = '';
+      images.forEach(src => {
+        const img = document.createElement('img');
+        img.src = src;
+        img.className = 'gallery-item-img';
+        lightboxGallery.appendChild(img);
+        galleryObserver.observe(img);
+      });
+      // Scroll naar het begin
+      lightboxGallery.scrollLeft = 0;
+    }
 
     // --- Physics Engine Loop ---
     function updatePhysics() {
@@ -1153,43 +1721,29 @@
     }
     startPhysicsLoop();
     
+    // --- Laden van de server bij start ---
+    function loadItemsFromServer() {
+      console.log("Waslijn items ophalen...");
+      fetch('/api/items')
+        .then(res => res.json())
+        .then(items => {
+          console.log("Items succesvol geladen:", items.length);
+          items.forEach(item => addNewItemToClothesline(item.src, item.title, item.description, item.author));
+          refreshItemsCache(); // Bereken posities na laden
+        })
+        .catch(err => console.error("Kon de waslijn niet laden:", err));
+    }
+    loadItemsFromServer();
+
     // Functie om de lightbox te sluiten met animatie terug naar waslijn
     function closeLightbox() {
       if (!activeSourceItem) {
         lightbox.classList.remove('active');
         return;
       }
-
-      const imgEl = activeSourceItem.querySelector('img');
-      const startRect = lightboxImg.getBoundingClientRect();
-      const endRect = imgEl.getBoundingClientRect();
-
-      const scaleX = endRect.width / startRect.width;
-      const scaleY = endRect.height / startRect.height;
-      const translateX = endRect.left - startRect.left + (endRect.width - startRect.width) / 2;
-      const translateY = endRect.top - startRect.top + (endRect.height - startRect.height) / 2;
-      
-      // Haal de actuele rotatie op uit de physics engine
-      const physObj = physicsItems.find(p => p.element === activeSourceItem);
-      const rotation = physObj ? physObj.angle : 0;
-
-      // Animeren terug naar de waslijn
-      const animation = lightboxImg.animate([
-        { transform: 'translate(0, 0) scale(1) rotate(0deg)' },
-        { transform: `translate(${translateX}px, ${translateY}px) scale(${scaleX}, ${scaleY}) rotate(${rotation}deg)` }
-      ], {
-        duration: 300,
-        easing: 'cubic-bezier(0.4, 0, 1, 1)', // Ease in (sneller op het einde)
-        fill: 'forwards'
-      });
-
-      animation.onfinish = () => {
       lightbox.classList.remove('active');
-        activeSourceItem.classList.remove('is-open');
-        activeSourceItem = null;
-        // Reset de transform op lightbox img voor volgende keer (hoewel animate fill forwards dit overschrijft, resetten is netjes)
-        lightboxImg.style.transform = ''; 
-      };
+      activeSourceItem.classList.remove('is-open');
+      activeSourceItem = null;
     }
 
     // Sluit de lightbox bij klik op overlay OF afbeelding
@@ -1229,12 +1783,47 @@
     });
 
     // Detecteer wanneer scrollen stopt voor de wiggle animatie
-    let isScrolling;
+    function refreshItemsCache() {
+        // We pakken alleen de items die daadwerkelijk op de waslijn hangen
+        const wrapper = document.getElementById('clotheslineSection');
+        if (!wrapper) return;
+
+        cachedHangingItems = Array.from(wrapper.querySelectorAll('.hanging-item'));
+        itemCenters = cachedHangingItems.map(item => {
+            // Gebruik offsetLeft + de helft van de breedte voor het exacte middelpunt
+            const rect = item.getBoundingClientRect();
+            const containerRect = wrapper.getBoundingClientRect();
+            // Bereken positie relatief aan de scroll-inhoud
+            return (rect.left - containerRect.left) + wrapper.scrollLeft + (rect.width / 2);
+        });
+    }
+
     let lastScrollLeft = scrollContainer.scrollLeft;
-    let currentMaxSpeed = 0;
-    const projectLabel = document.getElementById('projectLabel');
-    const maStartItem = document.getElementById('ma-project-start');
-    let currentProjectState = 1; // Houdt bij welk project er nu staat (1 of 2)
+    let lastActiveKey = ""; 
+    let cachedHangingItems = [];
+    let itemCenters = []; 
+
+    function updateProjectText(html, dotIndex) {
+      const projectTextContent = document.getElementById('projectTextContent');
+      const dotContainer = document.getElementById('dotContainer');
+      
+      if (lastActiveKey !== html) {
+        lastActiveKey = html;
+        projectTextContent.innerHTML = html;
+      }
+
+      // Update dots
+      if (dotIndex !== -1) {
+        dotContainer.style.visibility = 'visible';
+        const dots = dotContainer.querySelectorAll('.dot');
+        dots.forEach((dot, idx) => {
+          if (idx === dotIndex) dot.classList.add('active');
+          else dot.classList.remove('active');
+        });
+      } else {
+        dotContainer.style.visibility = 'hidden';
+      }
+    }
 
     scrollContainer.addEventListener('scroll', () => {
       // Bereken huidige snelheid (pixels verschil sinds vorige frame)
@@ -1242,22 +1831,53 @@
       const delta = currentLeft - lastScrollLeft; // Verschil in positie (+ of -)
       lastScrollLeft = currentLeft;
 
-      // --- Update Project Tekst ---
-      // Throttle de check: alleen doen als we een significant stuk scrollen om CPU te sparen
       if (Math.abs(delta) < 2) return; 
 
-      // Check positie van het eerste MA-werk t.o.v. het scroll-venster
-      const containerRect = scrollContainer.getBoundingClientRect();
-      const triggerRect = maStartItem.getBoundingClientRect();
-      const centerPoint = containerRect.left + containerRect.width / 2;
+      // --- Dynamische Tekst Update ---
+      if (cachedHangingItems.length === 0) refreshItemsCache();
+      
+      // Bepaal het punt in de container dat nu in het midden van het scherm staat
+      const scrollCenter = scrollContainer.scrollLeft + (window.innerWidth / 2);
 
-      // Als het eerste MA-werk het midden passeert, zijn we bij project 2
-      if (triggerRect.left < centerPoint && currentProjectState !== 2) {
-        currentProjectState = 2;
-        typeEffect(projectLabel, textProject2);
-      } else if (triggerRect.left >= centerPoint && currentProjectState !== 1) {
-        currentProjectState = 1;
-        typeEffect(projectLabel, textProject1);
+      let closestItem = null;
+      let minDistance = Infinity;
+
+      itemCenters.forEach((center, idx) => {
+          const dist = Math.abs(center - scrollCenter);
+          if (dist < minDistance) {
+              minDistance = dist;
+              closestItem = cachedHangingItems[idx];
+          }
+      });
+
+      if (closestItem) {
+        const itemIndex = cachedHangingItems.indexOf(closestItem);
+
+        let newText = "";
+        let activeDotIndex = -1;
+
+        // Logica voor Project 1 (Manual)
+        if (closestItem.id === 'ma-stack') {
+          newText = textProject2;
+          activeDotIndex = -1;
+        } else if (closestItem.classList.contains('uploaded-work')) {
+          newText = `<span style="font-size: 16px; display: block; margin-bottom: 25px;">${closestItem.dataset.title}</span>` +
+                    `<span style="display: block; margin-bottom: 25px;">${closestItem.dataset.description}</span>` +
+                    `<span style="display: block; font-style: italic;">${closestItem.dataset.author}</span>`;
+          activeDotIndex = -1;
+        } else {
+          // Manual project (Index 0 t/m 4)
+          // We verdelen de 3 alinea's over de eerste 5 items
+          if (itemIndex <= 1) activeDotIndex = 0; // Plus + Werk 1
+          else if (itemIndex === 2) activeDotIndex = 1; // Werk 2
+          else activeDotIndex = 2; // Werk 3 en 4
+          
+          newText = textProject1Title + `<span style="display: block;">${textProject1Parts[activeDotIndex]}</span>`;
+        }
+
+        if (newText) {
+           updateProjectText(newText, activeDotIndex);
+        }
       }
       
       // Directe 'wind' / inertie tijdens het scrollen
@@ -1270,52 +1890,17 @@
       startPhysicsLoop();
     }, { passive: true }); // Passive zorgt voor soepeler scrollen op oude hardware
 
-    // --- Typewriter Effect Functie (Fallout Style) ---
-    // Deze functie bouwt HTML recursief op zodat tags direct geplaatst worden
-    // en tekst letter voor letter verschijnt.
-    function typeEffect(element, html) {
-       // 1. Maak tijdelijke container om HTML structuur te lezen
-       const tempDiv = document.createElement('div');
-       tempDiv.innerHTML = html;
-       
-       element.innerHTML = ''; // Maak doel leeg
-       
-       // Queue van acties (letters toevoegen)
-       const queue = [];
-       
-       function traverse(node, targetParent) {
-         if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.textContent;
-            for (let i = 0; i < text.length; i++) {
-               queue.push(() => {
-                  targetParent.appendChild(document.createTextNode(text[i]));
-               });
-            }
-         } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const clone = node.cloneNode(false); // Clone element zonder kinderen
-            queue.push(() => {
-               targetParent.appendChild(clone);
-            });
-            // Ga recursief door de kinderen, maar voeg ze toe aan de clone
-            node.childNodes.forEach(child => traverse(child, clone));
-         }
-       }
-       
-       Array.from(tempDiv.childNodes).forEach(child => traverse(child, element));
-       
-       // Start animatie loop
-       if (window.typeInterval) clearInterval(window.typeInterval);
-       
-       let i = 0;
-       window.typeInterval = setInterval(() => {
-          if (i >= queue.length) {
-             clearInterval(window.typeInterval);
-             return;
-          }
-          queue[i](); // Voer actie uit (letter of tag plaatsen)
-          i++;
-       }, 25); // Iets langer interval bespaart CPU-cycles
-    }
+    // PERFORMANCE & SYNC: Update cache als afbeeldingen laden of venster verandert
+    window.addEventListener('resize', refreshItemsCache);
+    window.addEventListener('load', refreshItemsCache);
+    
+    // Luister naar het laden van afbeeldingen binnen de waslijn voor de zekerheid
+    document.getElementById('clotheslineSection').addEventListener('load', (e) => {
+        if (e.target.tagName === 'IMG') refreshItemsCache();
+    }, true);
+
+    // Initialiseer de eerste tekst
+    updateProjectText(textProject1Title + `<span style="display: block;">${textProject1Parts[0]}</span>`, 0);
 
     function autoScrollLoop() {
       if (scrollSpeed === 0) {
